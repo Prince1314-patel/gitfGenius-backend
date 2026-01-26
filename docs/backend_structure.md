@@ -118,7 +118,7 @@ backend → depends_on → db (with health check)
 
 ### 4. `Dockerfile`
 
-**Location:** Repository root (NOT in backend/ subfolder since there's no monorepo)  
+**Location:** Repository root  
 **Purpose:** Define backend container image
 
 **Build Steps:**

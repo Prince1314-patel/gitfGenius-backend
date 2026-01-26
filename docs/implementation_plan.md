@@ -34,11 +34,11 @@ mkdir giftgenius
 cd giftgenius
 
 # Create directory structure
-mkdir -p backend/app/core backend/app/api/v1
-touch backend/Dockerfile backend/requirements.txt backend/.dockerignore
-touch backend/app/__init__.py backend/app/main.py backend/app/database.py
-touch backend/app/core/__init__.py backend/app/core/config.py backend/app/core/security.py
-touch backend/app/api/__init__.py backend/app/api/v1/__init__.py
+mkdir -p app/core app/api/v1
+touch Dockerfile requirements.txt .dockerignore
+touch app/__init__.py app/main.py app/database.py
+touch app/core/__init__.py app/core/config.py app/core/security.py
+touch app/api/__init__.py app/api/v1/__init__.py
 touch .env .env.example .gitignore docker-compose.yml
 ```
 
@@ -63,18 +63,18 @@ openssl rand -hex 32
 
 Use the exact configuration from Backend Structure document (Section 3).
 
-### 1.4 Create `backend/Dockerfile`
+### 1.4 Create `Dockerfile`
 
 Use the exact Dockerfile from Backend Structure document (Section 4).
 
-### 1.5 Create `backend/requirements.txt`
+### 1.5 Create `requirements.txt`
 
 Use the exact requirements from Backend Structure document (Section 5).
 
 ### 1.6 Create Minimal `main.py`
 
 ```python
-# backend/app/main.py
+# app/main.py
 from fastapi import FastAPI
 
 app = FastAPI(title="GiftGenius API")
@@ -131,7 +131,7 @@ Use exact code from Backend Structure document (Section 11).
 ### 2.4 Update `main.py` with Database Initialization
 
 ```python
-# backend/app/main.py
+# app/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -798,7 +798,7 @@ Try to register from the UI. If you see:
 Access-Control-Allow-Origin error
 ```
 
-Then CORS is not configured correctly. Go back to `backend/app/main.py` and verify:
+Then CORS is not configured correctly. Go back to `app/main.py` and verify:
 ```python
 allow_origins=["http://localhost:5173"]
 ```
