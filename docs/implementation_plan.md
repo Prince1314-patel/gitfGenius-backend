@@ -158,7 +158,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:8080", "http://127.0.0.1:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -787,7 +787,7 @@ npm install  # If first time
 npm run dev
 ```
 
-**Expected:** Frontend runs on `http://localhost:5173`
+**Expected:** Frontend runs on `http://localhost:8080`
 
 ### 5.3 Verify CORS is Working
 

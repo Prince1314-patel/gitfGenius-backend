@@ -12,7 +12,7 @@
 1. **Base URL:** All endpoints MUST be prefixed with `/api/v1`
 2. **Response Format:** ALL responses must use the standard envelope (see below)
 3. **Authentication:** Protected routes MUST validate `Authorization: Bearer <token>` header
-4. **CORS:** Backend MUST allow `http://localhost:5173` (Vite dev server)
+4. **CORS:** Backend MUST allow `http://localhost:8080` (Vite dev server)
 5. **Content-Type:** All requests/responses use `application/json`
 
 ---
@@ -512,8 +512,8 @@ from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",  # Vite dev server
-        "http://127.0.0.1:5173"   # Alternative localhost
+        "http://localhost:8080",  # Vite dev server
+        "http://127.0.0.1:8080"   # Alternative localhost
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
