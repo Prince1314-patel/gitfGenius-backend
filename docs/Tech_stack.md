@@ -14,7 +14,7 @@
                          ↓
 ┌─────────────────────────────────────────────────────────┐
 │                  Frontend Container                      │
-│              React + Vite (Port 5173)                    │
+│              React + Vite (Port 8080)                    │
 │                   [ALREADY BUILT]                        │
 └────────────────────────┬────────────────────────────────┘
                          │ REST API (JSON)
@@ -212,7 +212,7 @@ pydantic-settings==2.1.0
 
 **Build Tool:** Vite 5
 - Why: Lightning-fast HMR, modern build tool
-- Dev Server: `localhost:5173`
+- Dev Server: `localhost:8080`
 - Production Build: Optimized static files
 
 ### Styling: Tailwind CSS
@@ -381,7 +381,7 @@ POST   /api/v1/contacts/{id}/memories      # Add memory
 # main.py
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=["http://localhost:8080"],  # Vite dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -417,7 +417,7 @@ docker-compose up --build
 3. Frontend (dev server, not containerized yet)
 
 **Ports:**
-- Frontend: 5173 (Vite dev server)
+- Frontend: 8080 (Vite dev server)
 - Backend: 8000 (FastAPI)
 - Database: 5432 (internal only)
 

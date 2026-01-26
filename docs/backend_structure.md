@@ -177,7 +177,7 @@ backend → depends_on → db (with health check)
 
 **Responsibilities:**
 - Create FastAPI app instance
-- Configure CORS middleware (allow frontend origin `http://localhost:5173`)
+- Configure CORS middleware (allow frontend origin `http://localhost:8080`)
 - Include all API routers with `/api/v1` prefix
 - Define lifespan events (startup: create DB tables, shutdown: cleanup)
 - Provide health check endpoints
@@ -567,8 +567,8 @@ User (1) ─────────────< Contact (Many)
 ## CORS Configuration Requirements
 
 **Backend MUST allow these origins:**
-- `http://localhost:5173` (Vite dev server)
-- `http://127.0.0.1:5173` (alternative localhost)
+- `http://localhost:8080` (Vite dev server)
+- `http://127.0.0.1:8080` (alternative localhost)
 
 **Settings:**
 - allow_credentials: True
