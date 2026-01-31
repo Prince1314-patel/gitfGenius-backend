@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_ANON_KEY: str
     
+    # Database (Added for SQLModel)
+    DATABASE_URL: str
+
     # JWT
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
