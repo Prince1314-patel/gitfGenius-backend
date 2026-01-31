@@ -5,7 +5,7 @@ echo ========================================
 echo.
 
 REM Check if virtual environment exists
-if not exist ".venv\" (
+if not exist ".venv/" (
     echo [1/4] Creating virtual environment...
     python -m venv .venv
     if errorlevel 1 (
@@ -21,7 +21,7 @@ if not exist ".venv\" (
 
 echo.
 echo [2/4] Activating virtual environment...
-call venv\Scripts\activate
+call .venv\Scripts\activate
 if errorlevel 1 (
     echo ERROR: Failed to activate virtual environment
     pause
