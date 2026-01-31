@@ -7,9 +7,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-from app.core.config import settings
-from app.core.supabase import supabase
-from app.core.database_init import init_database
+from app.database import create_db_and_tables
+# Import models to ensure they are registered with SQLModel metadata
+from app import models
 
 # Configure logging
 logging.basicConfig(
@@ -26,13 +26,12 @@ async def lifespan(app: FastAPI):
     Handles startup and shutdown events.
     """
     # Startup: Initialize database tables
-    logger.info("🚀 Starting GiftGenius API...")
+    logger.info("🚀 Creating database tables...")
     try:
-        init_database(supabase)
-        logger.info("✅ Application startup complete")
+        create_db_and_tables()
+        logger.info("✅ Database ready")
     except Exception as e:
-        logger.error(f"❌ Startup failed: {str(e)}")
-        # Continue anyway - the app can still run, just database might have issues
+        logger.error(f"❌ Database initialization failed: {str(e)}")
     
     yield
     
@@ -60,34 +59,7 @@ app.add_middleware(
 @app.get("/")
 def root():
     """Health check endpoint"""
-    return {
-        "status": "success",
-        "data": {
-            "message": "GiftGenius API is running",
-            "version": "1.0.0",
-            "environment": settings.ENVIRONMENT
-        }
-    }
-
-
-@app.get("/health")
-def health_check():
-    """Detailed health check"""
-    try:
-        # Test Supabase connection
-        response = supabase.table("users").select("id").limit(1).execute()
-        db_status = "connected"
-    except Exception as e:
-        db_status = f"error: {str(e)}"
-    
-    return {
-        "status": "success",
-        "data": {
-            "api": "healthy",
-            "database": db_status,
-            "environment": settings.ENVIRONMENT
-        }
-    }
+    return {"status": "success", "data": {"message": "API is running"}}
 
 
 if __name__ == "__main__":

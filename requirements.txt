@@ -2,6 +2,10 @@
 fastapi
 uvicorn[standard]
 
+# Database
+sqlmodel
+psycopg2-binary
+
 # Supabase Client
 supabase
 python-dotenv
