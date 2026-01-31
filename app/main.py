@@ -2,17 +2,49 @@
 Main FastAPI application
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 
 from app.core.config import settings
 from app.core.supabase import supabase
+from app.core.database_init import init_database
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan manager.
+    Handles startup and shutdown events.
+    """
+    # Startup: Initialize database tables
+    logger.info("🚀 Starting GiftGenius API...")
+    try:
+        init_database(supabase)
+        logger.info("✅ Application startup complete")
+    except Exception as e:
+        logger.error(f"❌ Startup failed: {str(e)}")
+        # Continue anyway - the app can still run, just database might have issues
+    
+    yield
+    
+    # Shutdown
+    logger.info("👋 Shutting down GiftGenius API...")
 
 
 app = FastAPI(
     title="GiftGenius API",
     version="1.0.0",
-    description="AI-powered gift recommendation system"
+    description="AI-powered gift recommendation system",
+    lifespan=lifespan
 )
 
 # Configure CORS
