@@ -25,53 +25,138 @@ Step 5: Integration (Frontend ↔ Backend)
 
 ## STEP 1: The Iron Skeleton (Infrastructure Setup)
 
-**Goal:** Get Docker containers running with backend + database
+**Goal:** Set up Supabase database and Python environment for FastAPI backend
 
-### 1.1 Create Project Structure
+### 1.1 Create Supabase Project
+
+**Before coding, set up your database:**
+
+1. Go to [https://supabase.com](https://supabase.com) and sign in
+2. Click "New Project"
+3. Fill in details:
+   - **Name**: `giftgenius` (or your choice)
+   - **Database Password**: Create a strong password (save it!)
+   - **Region**: Choose closest to you
+4. Wait 1-2 minutes for provisioning
+
+**Get your connection string:**
+1. Go to Project Settings → Database
+2. Copy the **Session Mode** connection string (port 5432)
+3. It looks like: `postgresql://postgres.[PROJECT-REF]:[PASSWORD]@[REGION].pooler.supabase.com:5432/postgres`
+
+> **Note:** See `docs/supabase_setup.md` for detailed setup instructions.
+
+### 1.2 Create Project Structure
 
 ```bash
-mkdir giftgenius
-cd giftgenius
+mkdir giftgenius-backend
+cd giftgenius-backend
 
 # Create directory structure
 mkdir -p app/core app/api/v1
-touch Dockerfile requirements.txt .dockerignore
+touch requirements.txt .gitignore
 touch app/__init__.py app/main.py app/database.py
 touch app/core/__init__.py app/core/config.py app/core/security.py
 touch app/api/__init__.py app/api/v1/__init__.py
-touch .env .env.example .gitignore docker-compose.yml
+touch .env .env.example
 ```
 
-### 1.2 Configure `.env`
+### 1.3 Configure `.env`
+
+**Update your existing `.env` file with your Supabase database password:**
 
 ```bash
-# .env (create this first)
-DATABASE_URL=postgresql://giftgenius_user:securepassword@db:5432/giftgenius
+# Supabase Configuration
+SUPABASE_URL=https://eihranpqaqhwwsabyhvy.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_HOyclUwmPARvfnGIqIMTIQ_mbcqLLEm
+
+# Database Configuration - Supabase PostgreSQL
+# IMPORTANT: Replace [YOUR-PASSWORD] with your actual Supabase database password
+DATABASE_URL=postgresql://postgres.eihranpqaqhwwsabyhvy:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
+
+# JWT Configuration
 SECRET_KEY=09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# Application
 ENVIRONMENT=development
 DEBUG=True
 ```
 
-**Generate strong SECRET_KEY:**
+**Generate strong SECRET_KEY (if you want to change it):**
 ```bash
 openssl rand -hex 32
 ```
 
-### 1.3 Create `docker-compose.yml`
+### 1.4 Create `requirements.txt`
 
-Use the exact configuration from Backend Structure document (Section 3).
+```txt
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
 
-### 1.4 Create `Dockerfile`
+# Database
+sqlmodel==0.0.14
+psycopg2-binary==2.9.9
 
-Use the exact Dockerfile from Backend Structure document (Section 4).
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
 
-### 1.5 Create `requirements.txt`
+# Configuration
+python-dotenv==1.0.0
+pydantic-settings==2.1.0
 
-Use the exact requirements from Backend Structure document (Section 5).
+# Utilities
+email-validator==2.1.0
+```
 
-### 1.6 Create Minimal `main.py`
+### 1.5 Set Up Python Virtual Environment
+
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+# source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 1.6 Create `.gitignore`
+
+```
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+```
+
+### 1.7 Create Minimal `main.py`
 
 ```python
 # app/main.py
@@ -84,26 +169,32 @@ def root():
     return {"message": "GiftGenius API is running"}
 ```
 
-### 1.7 **CHECKPOINT 1: Test Infrastructure**
+### 1.8 **CHECKPOINT 1: Test Supabase Connection**
 
 ```bash
-# From project root
-docker-compose up --build
+# Make sure virtual environment is activated
+# Run the FastAPI server
+uvicorn app.main:app --reload
 ```
 
 **Expected Output:**
 ```
-✅ Database container starts (giftgenius-db)
-✅ Backend container starts (giftgenius-backend)
-✅ Backend shows: "Application startup complete"
-✅ Visit http://localhost:8000 → See {"message": "GiftGenius API is running"}
-✅ Visit http://localhost:8000/docs → See Swagger UI
+✅ INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+✅ INFO:     Started reloader process
+✅ INFO:     Started server process
+✅ INFO:     Waiting for application startup.
+✅ INFO:     Application startup complete.
 ```
 
+**Test the API:**
+- Visit http://localhost:8000 → See `{"message": "GiftGenius API is running"}`
+- Visit http://localhost:8000/docs → See Swagger UI
+
 **If this fails:**
-- Check Docker is running
-- Check .env file exists and has correct values
-- Check no port conflicts (5432, 8000 already in use)
+- Check Python is installed (Python 3.8+)
+- Check virtual environment is activated
+- Check all dependencies installed: `pip list`
+- Check no port conflicts (8000 already in use)
 
 ---
 
@@ -173,9 +264,8 @@ def root():
 ### 2.5 **CHECKPOINT 2: Verify Database Tables**
 
 ```bash
-# Restart containers
-docker-compose down
-docker-compose up --build
+# Stop the server (Ctrl+C) and restart it
+uvicorn app.main:app --reload
 ```
 
 **Expected Logs:**
@@ -184,35 +274,38 @@ docker-compose up --build
 ✅ Database ready
 ```
 
-**Verify with Database Client:**
+**Verify with Supabase Dashboard:**
 
-```bash
-# Connect to database
-docker exec -it giftgenius-db psql -U giftgenius_user -d giftgenius
+1. **Log into Supabase** at https://supabase.com
+2. **Open your project** (giftgenius)
+3. **Navigate to Table Editor** (left sidebar)
+4. **Check for tables:**
+   - `users`
+   - `contacts`
+   - `memories`
 
-# List tables
-\dt
+5. **Inspect table structure:**
+   - Click on `users` table
+   - Verify columns: `id`, `email`, `password_hash`, `created_at`
+   - Click on `contacts` table
+   - Verify columns: `id`, `name`, `relationship_type`, `birthday`, `user_id`, `created_at`
+   - Click on `memories` table
+   - Verify columns: `id`, `content`, `contact_id`, `created_at`
 
-# Expected output:
- Schema |   Name    | Type  |      Owner      
---------|-----------|-------|------------------
- public | users     | table | giftgenius_user
- public | contacts  | table | giftgenius_user
- public | memories  | table | giftgenius_user
+**Alternative: Use Supabase SQL Editor**
 
-# Describe users table
-\d users
+Navigate to SQL Editor and run:
+```sql
+-- List all tables
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public';
 
-# Exit
-\q
+-- Describe users table
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'users';
 ```
-
-**Alternative: Use DBeaver**
-- Host: localhost
-- Port: 5432
-- Database: giftgenius
-- Username: giftgenius_user
-- Password: securepassword
 
 ---
 
@@ -371,7 +464,8 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 ### 3.5 **CHECKPOINT 3: Test Authentication**
 
 ```bash
-docker-compose restart backend
+# Restart the server (Ctrl+C then run again)
+uvicorn app.main:app --reload
 ```
 
 **Test Registration via Swagger UI** (`http://localhost:8000/docs`):
@@ -709,7 +803,8 @@ app.include_router(memories.router, prefix="/api/v1/contacts", tags=["Memories"]
 ### 4.4 **CHECKPOINT 4: Test Complete API**
 
 ```bash
-docker-compose restart backend
+# Restart the server
+uvicorn app.main:app --reload
 ```
 
 **Full User Journey Test in Swagger UI:**
@@ -824,25 +919,80 @@ allow_origins=["http://localhost:5173"]
 
 ## Common Issues & Solutions
 
-### Issue: Docker containers won't start
+### Issue: Backend won't start or can't connect to database
 
 **Solution:**
 ```bash
-# Clean everything
-docker-compose down -v
-docker system prune -a
-docker-compose up --build
+# Check if virtual environment is activated
+# You should see (venv) in your terminal prompt
+
+# If not activated:
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+# source venv/bin/activate
+
+# Check Python version
+python --version  # Should be 3.8+
+
+# Check installed packages
+pip list
 ```
+
+**Verify:**
+1. Supabase project is active (not paused)
+2. DATABASE_URL in `.env` is correct
+3. Password in DATABASE_URL matches your Supabase database password
+4. No extra spaces or quotes in `.env` file
+5. Virtual environment is activated
 
 ### Issue: Database tables not created
 
 **Solution:**
 ```bash
-# Check logs
-docker logs giftgenius-backend
+# Make sure virtual environment is activated
+# Run Python shell and manually create tables
+python
 
-# Manually create tables
-docker exec -it giftgenius-backend python -c "from app.database import create_db_and_tables; create_db_and_tables()"
+>>> from app.database import create_db_and_tables
+>>> create_db_and_tables()
+>>> exit()
+```
+
+**Then verify in Supabase Dashboard → Table Editor**
+
+### Issue: "Password authentication failed"
+
+**Solution:**
+1. Go to Supabase Dashboard → Settings → Database
+2. Reset your database password
+3. Update the password in your `.env` file
+4. Restart server: Stop with Ctrl+C, then run `uvicorn app.main:app --reload`
+
+### Issue: "Too many connections" or "connection pool exhausted"
+
+**Solution:**
+1. Use **Session Mode** pooler instead of Direct Connection
+2. Reduce connection pool size in `app/database.py`:
+   ```python
+   engine = create_engine(
+       settings.DATABASE_URL,
+       pool_size=3,  # Reduce from 5
+       max_overflow=5  # Reduce from 10
+   )
+   ```
+3. Restart server
+
+### Issue: "Module not found" errors
+
+**Solution:**
+```bash
+# Make sure virtual environment is activated
+# Reinstall dependencies
+pip install -r requirements.txt
+
+# If specific package is missing:
+pip install package-name
 ```
 
 ### Issue: 401 Unauthorized on every request

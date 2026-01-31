@@ -54,8 +54,9 @@ giftgenius-backend/              # Root of backend repository
 
 **Required Variables:**
 ```bash
-# Database Configuration
-DATABASE_URL=postgresql://giftgenius_user:securepassword@db:5432/giftgenius
+# Database Configuration - Supabase
+# Get this from: Supabase Dashboard → Settings → Database → Connection String (Session Mode)
+DATABASE_URL=postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@[REGION].pooler.supabase.com:5432/postgres
 
 # JWT Configuration
 SECRET_KEY=your-super-secret-key-min-32-characters-long-change-this
@@ -71,6 +72,7 @@ DEBUG=True
 - ✅ Never commit this file to git
 - ✅ Use strong SECRET_KEY (generate with `openssl rand -hex 32`)
 - ✅ Different values for dev/staging/production
+- ✅ Get DATABASE_URL from Supabase project dashboard
 
 ---
 
@@ -82,7 +84,8 @@ DEBUG=True
 **Content Structure:**
 ```bash
 # Copy this file to .env and fill in actual values
-DATABASE_URL=postgresql://user:password@db:5432/dbname
+# Get your Supabase connection string from: Dashboard → Settings → Database
+DATABASE_URL=postgresql://postgres.[PROJECT-REF]:[PASSWORD]@[REGION].pooler.supabase.com:5432/postgres
 SECRET_KEY=your-secret-key-here
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
@@ -95,23 +98,32 @@ DEBUG=True
 ### 3. `docker-compose.yml`
 
 **Location:** Repository root  
-**Purpose:** Orchestrate backend + database containers
+**Purpose:** Define backend container (database is hosted by Supabase)
 
-**Services Defined:**
-- **db service:** PostgreSQL 15 Alpine container
+**Service Defined:**
 - **backend service:** FastAPI application container
 
 **Key Configuration Points:**
-- Database has health check before backend starts
-- Backend depends on healthy database
-- Volume `postgres_data` for data persistence
+- Backend connects to Supabase managed PostgreSQL
 - Port 8000 exposed for API
-- Port 5432 exposed for database access
 - Hot reload enabled with `--reload` flag
+- Environment variables loaded from `.env` file
 
-**Service Dependencies:**
-```
-backend → depends_on → db (with health check)
+**Example Configuration:**
+```yaml
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: giftgenius-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ---
@@ -201,14 +213,21 @@ backend → depends_on → db (with health check)
 **Key Components:**
 
 **1. Engine Creation:**
-- Loads DATABASE_URL from settings
+- Loads DATABASE_URL from settings (Supabase connection string)
 - Configures connection pool (size: 5, max_overflow: 10)
 - Enables pool_pre_ping to prevent stale connections
 - SQL query logging based on DEBUG flag
 
+**Supabase Connection Notes:**
+- Works seamlessly with Supabase PostgreSQL (no code changes needed)
+- Use **Session Mode** pooler for persistent connections: `postgresql://postgres.[PROJECT-REF]:[PASSWORD]@[REGION].pooler.supabase.com:5432/postgres`
+- Connection pooling is handled by both SQLAlchemy (client-side) and Supabase Supavisor (server-side)
+- SSL is enabled by default for Supabase connections
+
 **2. create_db_and_tables() Function:**
 - Creates all database tables using SQLModel metadata
 - Called during application startup
+- Tables are created in your Supabase PostgreSQL database
 
 **3. get_session() Dependency:**
 - Yields database session for dependency injection
