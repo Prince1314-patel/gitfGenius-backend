@@ -12,7 +12,7 @@ supabase
 python-dotenv
 
 # Authentication
-python-jose[cryptography]
+PyJWT
 passlib[bcrypt]
 python-multipart
 
