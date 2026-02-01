@@ -80,7 +80,7 @@ class TestUserRegistration:
         
         try:
             # Make request
-            response = client.post("/auth/register", json=valid_registration_data)
+            response = client.post("/api/v1/auth/register", json=valid_registration_data)
             
             # Should return 200 with success response
             assert response.status_code == 200
@@ -132,7 +132,7 @@ class TestUserRegistration:
             registration_data["email"] = existing_user.email
             
             # Make request
-            response = client.post("/auth/register", json=registration_data)
+            response = client.post("/api/v1/auth/register", json=registration_data)
             
             # Should return 409 with error response
             assert response.status_code == 409
@@ -168,7 +168,7 @@ class TestUserRegistration:
             registration_data = valid_registration_data.copy()
             registration_data["email"] = invalid_email
             
-            response = client.post("/auth/register", json=registration_data)
+            response = client.post("/api/v1/auth/register", json=registration_data)
             
             # Should return 422 for validation error
             assert response.status_code == 422
@@ -196,7 +196,7 @@ class TestUserRegistration:
             registration_data = valid_registration_data.copy()
             registration_data["password"] = short_password
             
-            response = client.post("/auth/register", json=registration_data)
+            response = client.post("/api/v1/auth/register", json=registration_data)
             
             # Should return 422 for validation error
             assert response.status_code == 422
@@ -238,7 +238,7 @@ class TestUserRegistration:
         
         try:
             # Make request
-            response = client.post("/auth/register", json=valid_registration_data)
+            response = client.post("/api/v1/auth/register", json=valid_registration_data)
             
             # Should return 200
             assert response.status_code == 200
@@ -280,7 +280,7 @@ class TestUserRegistration:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/register", json=valid_registration_data)
+            response = client.post("/api/v1/auth/register", json=valid_registration_data)
             
             assert response.status_code == 200
             response_data = response.json()
@@ -314,7 +314,7 @@ class TestUserRegistration:
             registration_data = valid_registration_data.copy()
             registration_data["email"] = existing_user.email
             
-            response = client.post("/auth/register", json=registration_data)
+            response = client.post("/api/v1/auth/register", json=registration_data)
             
             assert response.status_code == 409
             response_data = response.json()
@@ -364,7 +364,7 @@ class TestUserRegistration:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/register", json=valid_registration_data)
+            response = client.post("/api/v1/auth/register", json=valid_registration_data)
             
             assert response.status_code == 200
             
@@ -408,7 +408,7 @@ class TestUserRegistration:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/register", json=valid_registration_data)
+            response = client.post("/api/v1/auth/register", json=valid_registration_data)
             
             assert response.status_code == 200
             response_data = response.json()
@@ -452,7 +452,7 @@ class TestUserRegistration:
         ]
         
         for test_data in test_cases:
-            response = client.post("/auth/register", json=test_data)
+            response = client.post("/api/v1/auth/register", json=test_data)
             
             # Should return 422 for validation error
             assert response.status_code == 422
@@ -480,7 +480,7 @@ class TestUserRegistration:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/register", json=valid_registration_data)
+            response = client.post("/api/v1/auth/register", json=valid_registration_data)
             
             # Should return 500 for internal server error
             assert response.status_code == 500

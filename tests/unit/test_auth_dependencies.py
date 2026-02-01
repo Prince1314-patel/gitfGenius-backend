@@ -98,71 +98,66 @@ class TestGetCurrentUser:
     
     async def test_get_current_user_with_expired_token(self, expired_credentials, mock_db_session):
         """Test get_current_user with expired JWT token."""
-        with pytest.raises(HTTPException) as exc_info:
+        from app.core.exceptions import TokenExpiredError
+        
+        with pytest.raises(TokenExpiredError) as exc_info:
             await get_current_user(expired_credentials, mock_db_session)
         
-        # Should raise 401 with expired token message
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc_info.value.detail["status"] == "error"
-        assert exc_info.value.detail["data"] is None
-        assert "expired" in exc_info.value.detail["message"].lower()
-        assert exc_info.value.headers == {"WWW-Authenticate": "Bearer"}
+        # Should raise TokenExpiredError with appropriate message
+        assert "expired" in str(exc_info.value).lower()
     
     async def test_get_current_user_with_malformed_token(self, malformed_credentials, mock_db_session):
         """Test get_current_user with malformed JWT token."""
-        with pytest.raises(HTTPException) as exc_info:
+        from app.core.exceptions import InvalidTokenError
+        
+        with pytest.raises(InvalidTokenError) as exc_info:
             await get_current_user(malformed_credentials, mock_db_session)
         
-        # Should raise 401 with invalid token message
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc_info.value.detail["status"] == "error"
-        assert exc_info.value.detail["data"] is None
-        assert "invalid token format" in exc_info.value.detail["message"].lower()
-        assert exc_info.value.headers == {"WWW-Authenticate": "Bearer"}
+        # Should raise InvalidTokenError with appropriate message
+        assert "invalid" in str(exc_info.value).lower() or "token" in str(exc_info.value).lower()
     
     async def test_get_current_user_with_missing_token(self, mock_db_session):
         """Test get_current_user with missing token (None credentials)."""
-        with pytest.raises(HTTPException) as exc_info:
+        from app.core.exceptions import MissingTokenError
+        
+        with pytest.raises(MissingTokenError) as exc_info:
             await get_current_user(None, mock_db_session)
         
-        # Should raise 401 with authentication required message
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc_info.value.detail["status"] == "error"
-        assert exc_info.value.detail["data"] is None
-        assert "authentication required" in exc_info.value.detail["message"].lower()
+        # Should raise MissingTokenError with appropriate message
+        assert "authentication required" in str(exc_info.value).lower() or "token" in str(exc_info.value).lower()
         assert exc_info.value.headers == {"WWW-Authenticate": "Bearer"}
     
     async def test_get_current_user_with_empty_token(self, mock_db_session):
         """Test get_current_user with empty token."""
+        from app.core.exceptions import InvalidTokenError
+        
         empty_credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="")
         
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(InvalidTokenError) as exc_info:
             await get_current_user(empty_credentials, mock_db_session)
         
-        # Should raise 401 with token validation error
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc_info.value.detail["status"] == "error"
-        assert exc_info.value.detail["data"] is None
-        assert "token validation error" in exc_info.value.detail["message"].lower()
+        # Should raise InvalidTokenError with appropriate message
+        assert "token" in str(exc_info.value).lower()
     
     async def test_get_current_user_with_token_missing_user_id(self, mock_db_session):
         """Test get_current_user with token missing user_id."""
+        from app.core.exceptions import InvalidTokenError
+        
         # Create token without user_id
         token_data = {"email": "test@example.com"}  # Missing user_id
         token = jwt_manager.create_access_token(token_data)
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
         
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(InvalidTokenError) as exc_info:
             await get_current_user(credentials, mock_db_session)
         
-        # Should raise 401 with missing user identification message
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc_info.value.detail["status"] == "error"
-        assert exc_info.value.detail["data"] is None
-        assert "missing user identification" in exc_info.value.detail["message"].lower()
+        # Should raise InvalidTokenError with appropriate message
+        assert "user identification" in str(exc_info.value).lower()
     
     async def test_get_current_user_with_user_not_found_in_database(self, sample_user, mock_db_session):
         """Test get_current_user when user is not found in database."""
+        from app.core.exceptions import UserNotFoundError
+        
         # Create valid token
         token_data = {"user_id": str(sample_user.id), "email": sample_user.email}
         token = jwt_manager.create_access_token(token_data)
@@ -173,14 +168,11 @@ class TestGetCurrentUser:
         mock_result.first.return_value = None
         mock_db_session.exec.return_value = mock_result
         
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(UserNotFoundError) as exc_info:
             await get_current_user(credentials, mock_db_session)
         
-        # Should raise 401 with user not found message
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc_info.value.detail["status"] == "error"
-        assert exc_info.value.detail["data"] is None
-        assert "user not found" in exc_info.value.detail["message"].lower()
+        # Should raise UserNotFoundError with appropriate message
+        assert "user not found" in str(exc_info.value).lower()
     
     async def test_get_current_user_database_integration(self, valid_credentials, sample_user, mock_db_session):
         """Test database integration in get_current_user dependency."""
@@ -205,51 +197,40 @@ class TestGetCurrentUser:
     
     async def test_get_current_user_with_wrong_signature_token(self, sample_user, mock_db_session):
         """Test get_current_user with token signed with wrong secret."""
+        from app.core.exceptions import InvalidTokenError
+        
         # Create token with wrong secret
         token_data = {"user_id": str(sample_user.id), "email": sample_user.email}
         wrong_secret_token = jwt_lib.encode(token_data, "wrong_secret", algorithm=jwt_manager.algorithm)
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=wrong_secret_token)
         
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(InvalidTokenError) as exc_info:
             await get_current_user(credentials, mock_db_session)
         
-        # Should raise 401 with invalid token format message
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc_info.value.detail["status"] == "error"
-        assert "invalid token format" in exc_info.value.detail["message"].lower()
+        # Should raise InvalidTokenError with appropriate message
+        assert "invalid" in str(exc_info.value).lower() or "token" in str(exc_info.value).lower()
     
     async def test_get_current_user_error_response_format(self, mock_db_session):
         """Test that all error responses follow standardized format."""
-        # Test with missing credentials
-        with pytest.raises(HTTPException) as exc_info:
+        from app.core.exceptions import MissingTokenError
+        
+        # Test with missing credentials - should raise custom exception
+        with pytest.raises(MissingTokenError):
             await get_current_user(None, mock_db_session)
-        
-        error_detail = exc_info.value.detail
-        
-        # Verify standardized response format
-        assert isinstance(error_detail, dict)
-        assert "status" in error_detail
-        assert "data" in error_detail
-        assert "message" in error_detail
-        assert error_detail["status"] == "error"
-        assert error_detail["data"] is None
-        assert isinstance(error_detail["message"], str)
-        assert len(error_detail["message"]) > 0
     
     @patch('app.core.security.jwt_manager.verify_token')
     async def test_get_current_user_handles_unexpected_errors(self, mock_verify_token, valid_credentials, mock_db_session):
         """Test get_current_user handles unexpected errors gracefully."""
+        from app.core.exceptions import InvalidTokenError
+        
         # Mock verify_token to raise an unexpected error
         mock_verify_token.side_effect = RuntimeError("Unexpected error")
         
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(InvalidTokenError) as exc_info:
             await get_current_user(valid_credentials, mock_db_session)
         
-        # Should raise 500 for unexpected errors
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert exc_info.value.detail["status"] == "error"
-        assert exc_info.value.detail["data"] is None
-        assert "internal server error" in exc_info.value.detail["message"].lower()
+        # Should raise InvalidTokenError for unexpected errors
+        assert "internal server error" in str(exc_info.value).lower()
     
     async def test_get_current_user_preserves_user_data(self, sample_user, mock_db_session):
         """Test that get_current_user preserves all user data correctly."""

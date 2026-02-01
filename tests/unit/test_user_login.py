@@ -61,7 +61,7 @@ class TestUserLogin:
         
         try:
             # Make request
-            response = client.post("/auth/login", json=valid_login_data)
+            response = client.post("/api/v1/auth/login", json=valid_login_data)
             
             # Should return 200 with success response
             assert response.status_code == 200
@@ -110,7 +110,7 @@ class TestUserLogin:
             login_data["email"] = "nonexistent@example.com"
             
             # Make request
-            response = client.post("/auth/login", json=login_data)
+            response = client.post("/api/v1/auth/login", json=login_data)
             
             # Should return 401 with error response
             assert response.status_code == 401
@@ -142,7 +142,7 @@ class TestUserLogin:
             login_data["password"] = "WrongPassword123!"
             
             # Make request
-            response = client.post("/auth/login", json=login_data)
+            response = client.post("/api/v1/auth/login", json=login_data)
             
             # Should return 401 with error response
             assert response.status_code == 401
@@ -169,7 +169,7 @@ class TestUserLogin:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/login", json=valid_login_data)
+            response = client.post("/api/v1/auth/login", json=valid_login_data)
             
             assert response.status_code == 200
             response_data = response.json()
@@ -200,7 +200,7 @@ class TestUserLogin:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/login", json=valid_login_data)
+            response = client.post("/api/v1/auth/login", json=valid_login_data)
             
             assert response.status_code == 401
             response_data = response.json()
@@ -234,7 +234,7 @@ class TestUserLogin:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/login", json=valid_login_data)
+            response = client.post("/api/v1/auth/login", json=valid_login_data)
             
             assert response.status_code == 200
             response_data = response.json()
@@ -295,7 +295,7 @@ class TestUserLogin:
             app.dependency_overrides[get_session] = lambda: mock_db
             
             try:
-                response = client.post("/auth/login", json=test_case["login_data"])
+                response = client.post("/api/v1/auth/login", json=test_case["login_data"])
                 
                 assert response.status_code == 401
                 response_data = response.json()
@@ -321,7 +321,7 @@ class TestUserLogin:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/login", json=valid_login_data)
+            response = client.post("/api/v1/auth/login", json=valid_login_data)
             
             assert response.status_code == 200
             
@@ -350,14 +350,14 @@ class TestUserLogin:
         
         try:
             # Test with correct password
-            response = client.post("/auth/login", json=valid_login_data)
+            response = client.post("/api/v1/auth/login", json=valid_login_data)
             assert response.status_code == 200
             
             # Test with incorrect password
             wrong_login_data = valid_login_data.copy()
             wrong_login_data["password"] = "WrongPassword123!"
             
-            response = client.post("/auth/login", json=wrong_login_data)
+            response = client.post("/api/v1/auth/login", json=wrong_login_data)
             assert response.status_code == 401
             
             # Verify the password verification was called (indirectly through response)
@@ -377,7 +377,7 @@ class TestUserLogin:
         ]
         
         for test_data in test_cases:
-            response = client.post("/auth/login", json=test_data)
+            response = client.post("/api/v1/auth/login", json=test_data)
             
             # Should return 422 for validation error
             assert response.status_code == 422
@@ -400,7 +400,7 @@ class TestUserLogin:
             login_data = valid_login_data.copy()
             login_data["email"] = invalid_email
             
-            response = client.post("/auth/login", json=login_data)
+            response = client.post("/api/v1/auth/login", json=login_data)
             
             # Should return 422 for validation error
             assert response.status_code == 422
@@ -421,7 +421,7 @@ class TestUserLogin:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/login", json=valid_login_data)
+            response = client.post("/api/v1/auth/login", json=valid_login_data)
             
             # Should return 500 for internal server error
             assert response.status_code == 500
@@ -448,7 +448,7 @@ class TestUserLogin:
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
-            response = client.post("/auth/login", json=valid_login_data)
+            response = client.post("/api/v1/auth/login", json=valid_login_data)
             
             assert response.status_code == 200
             response_data = response.json()

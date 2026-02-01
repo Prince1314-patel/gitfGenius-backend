@@ -21,7 +21,7 @@ class TestProtectedRouteErrors:
     
     def test_protected_route_missing_token(self, client):
         """Test protected route access without JWT token."""
-        response = client.get("/auth/profile")
+        response = client.get("/api/v1/auth/profile")
         
         assert response.status_code == 401
         response_data = response.json()
@@ -35,7 +35,7 @@ class TestProtectedRouteErrors:
     def test_protected_route_invalid_token(self, client):
         """Test protected route access with invalid JWT token."""
         headers = {"Authorization": "Bearer invalid-token-here"}
-        response = client.get("/auth/profile", headers=headers)
+        response = client.get("/api/v1/auth/profile", headers=headers)
         
         assert response.status_code == 401
         response_data = response.json()
@@ -48,7 +48,7 @@ class TestProtectedRouteErrors:
     def test_protected_route_malformed_token(self, client):
         """Test protected route access with malformed JWT token."""
         headers = {"Authorization": "Bearer not.a.valid.jwt.token"}
-        response = client.get("/auth/profile", headers=headers)
+        response = client.get("/api/v1/auth/profile", headers=headers)
         
         assert response.status_code == 401
         response_data = response.json()
@@ -64,7 +64,7 @@ class TestProtectedRouteErrors:
         expired_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTIzIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiZXhwIjoxNjAwMDAwMDAwfQ.invalid"
         
         headers = {"Authorization": f"Bearer {expired_token}"}
-        response = client.get("/auth/profile", headers=headers)
+        response = client.get("/api/v1/auth/profile", headers=headers)
         
         assert response.status_code == 401
         response_data = response.json()
@@ -77,7 +77,7 @@ class TestProtectedRouteErrors:
     def test_protected_route_with_bearer_prefix_missing(self, client):
         """Test protected route access with token but missing Bearer prefix."""
         headers = {"Authorization": "some-token-without-bearer"}
-        response = client.get("/auth/profile", headers=headers)
+        response = client.get("/api/v1/auth/profile", headers=headers)
         
         # FastAPI HTTPBearer should handle this and return 403 or similar
         # But our middleware should catch it and return standardized error
@@ -100,7 +100,7 @@ class TestProtectedRouteErrors:
         ]
         
         for case in test_cases:
-            response = client.get("/auth/profile", headers=case["headers"])
+            response = client.get("/api/v1/auth/profile", headers=case["headers"])
             assert response.status_code == case["expected_status"]
             
             response_data = response.json()

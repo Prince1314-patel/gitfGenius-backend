@@ -74,8 +74,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth_router)
+# Include routers with API versioning
+app.include_router(auth_router, prefix="/api/v1")
 
 
 @app.get("/")
