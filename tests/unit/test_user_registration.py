@@ -75,7 +75,7 @@ class TestUserRegistration:
         
         mock_db.refresh.side_effect = mock_refresh
         
-        # Override the dependency
+        # Override the dependency for this specific test
         app.dependency_overrides[get_session] = lambda: mock_db
         
         try:
@@ -110,8 +110,9 @@ class TestUserRegistration:
             mock_db.commit.assert_called_once()
             mock_db.refresh.assert_called_once()
         finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+            # Clean up this test's dependency override
+            if get_session in app.dependency_overrides:
+                del app.dependency_overrides[get_session]
     
     def test_duplicate_email_prevention(self, client, valid_registration_data, existing_user):
         """Test duplicate email prevention and appropriate error response."""
