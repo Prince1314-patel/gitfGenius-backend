@@ -9,6 +9,9 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings"""
     
+    # Database
+    DATABASE_URL: str
+    
     # Supabase
     SUPABASE_URL: str
     SUPABASE_ANON_KEY: str
