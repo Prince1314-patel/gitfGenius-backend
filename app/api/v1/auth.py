@@ -18,11 +18,53 @@ from app.schemas import (
     StandardResponse,
     UserInfo
 )
-from app.core.security import password_manager, jwt_manager
+from app.core.security import password_manager, jwt_manager, get_current_user
+from app.core.exceptions import (
+    DuplicateEmailError,
+    InvalidCredentialsError,
+    SystemError,
+    SecureLogger
+)
 import uuid
 
 # Create router for authentication endpoints
 router = APIRouter(prefix="/auth", tags=["authentication"])
+
+
+@router.get("/profile", response_model=StandardResponse[UserInfo])
+async def get_user_profile(
+    current_user: User = Depends(get_current_user)
+) -> StandardResponse[UserInfo]:
+    """
+    Get current user profile information.
+    
+    This is an example protected endpoint that demonstrates JWT authentication
+    and error handling. It requires a valid JWT token in the Authorization header.
+    
+    Args:
+        current_user: Current authenticated user from JWT token
+        
+    Returns:
+        StandardResponse[UserInfo]: User profile information
+        
+    Raises:
+        MissingTokenError: If no JWT token provided
+        InvalidTokenError: If JWT token is malformed
+        TokenExpiredError: If JWT token has expired
+        UserNotFoundError: If user in token not found in database
+    """
+    user_info = UserInfo(
+        id=str(current_user.id),
+        email=current_user.email,
+        full_name=current_user.full_name,
+        created_at=current_user.created_at.isoformat()
+    )
+    
+    return StandardResponse[UserInfo](
+        status="success",
+        data=user_info,
+        message="Profile retrieved successfully."
+    )
 
 
 @router.post("/register", response_model=StandardResponse[AuthenticationResponse])
@@ -47,7 +89,8 @@ async def register_user(
         StandardResponse[AuthenticationResponse]: Success response with user info and JWT token
         
     Raises:
-        HTTPException: 409 if email already exists, 400 for validation errors
+        DuplicateEmailError: If email already exists
+        SystemError: For database or system errors
         
     Requirements implemented:
     - 1.1: Creates new user account with valid email and password
@@ -65,14 +108,13 @@ async def register_user(
         existing_user = db.exec(statement).first()
         
         if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail={
-                    "status": "error",
-                    "data": None,
-                    "message": "An account with this email address already exists."
-                }
+            # Log registration attempt with duplicate email
+            SecureLogger.log_registration_attempt(
+                email=user_data.email,
+                success=False,
+                error_type="DUPLICATE_EMAIL"
             )
+            raise DuplicateEmailError()
         
         # Hash the password
         hashed_password = password_manager.hash_password(user_data.password)
@@ -111,27 +153,30 @@ async def register_user(
             token_type="bearer"
         )
         
+        # Log successful registration
+        SecureLogger.log_registration_attempt(
+            email=user_data.email,
+            success=True
+        )
+        
         return StandardResponse[AuthenticationResponse](
             status="success",
             data=auth_response,
             message="User registered successfully."
         )
         
-    except HTTPException:
-        # Re-raise HTTP exceptions (like duplicate email)
+    except DuplicateEmailError:
+        # Re-raise custom authentication errors
         raise
         
     except Exception as e:
         # Handle any unexpected errors
         db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "status": "error",
-                "data": None,
-                "message": "An error occurred during registration. Please try again."
-            }
+        SecureLogger.log_system_error(
+            error_message=str(e),
+            context="user_registration"
         )
+        raise SystemError("An error occurred during registration. Please try again.")
 
 
 @router.post("/login", response_model=StandardResponse[AuthenticationResponse])
@@ -156,7 +201,8 @@ async def login_user(
         StandardResponse[AuthenticationResponse]: Success response with user info and JWT token
         
     Raises:
-        HTTPException: 401 for invalid credentials, 400 for validation errors
+        InvalidCredentialsError: For invalid email or password
+        SystemError: For database or system errors
         
     Requirements implemented:
     - 2.1: Authenticates user with valid email and password
@@ -173,25 +219,21 @@ async def login_user(
         user = db.exec(statement).first()
         
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={
-                    "status": "error",
-                    "data": None,
-                    "message": "Invalid email or password."
-                }
+            # Log failed authentication attempt
+            SecureLogger.log_authentication_attempt(
+                email=credentials.email,
+                success=False
             )
+            raise InvalidCredentialsError()
         
         # Verify password
         if not password_manager.verify_password(credentials.password, user.password_hash):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={
-                    "status": "error",
-                    "data": None,
-                    "message": "Invalid email or password."
-                }
+            # Log failed authentication attempt
+            SecureLogger.log_authentication_attempt(
+                email=credentials.email,
+                success=False
             )
+            raise InvalidCredentialsError()
         
         # Generate JWT token
         token_data = {
@@ -215,23 +257,26 @@ async def login_user(
             token_type="bearer"
         )
         
+        # Log successful authentication
+        SecureLogger.log_authentication_attempt(
+            email=credentials.email,
+            success=True
+        )
+        
         return StandardResponse[AuthenticationResponse](
             status="success",
             data=auth_response,
             message="Login successful."
         )
         
-    except HTTPException:
-        # Re-raise HTTP exceptions (like authentication failures)
+    except InvalidCredentialsError:
+        # Re-raise custom authentication errors
         raise
         
     except Exception as e:
         # Handle any unexpected errors
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "status": "error",
-                "data": None,
-                "message": "An error occurred during login. Please try again."
-            }
+        SecureLogger.log_system_error(
+            error_message=str(e),
+            context="user_login"
         )
+        raise SystemError("An error occurred during login. Please try again.")

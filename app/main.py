@@ -5,11 +5,20 @@ Main FastAPI application
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 import logging
 
 from app.core.config import settings
 from app.core.supabase import supabase
 from app.core.database_init import init_database
+from app.core.middleware import (
+    ErrorHandlingMiddleware,
+    authentication_exception_handler,
+    validation_exception_handler,
+    http_exception_handler,
+    general_exception_handler
+)
+from app.core.exceptions import AuthenticationError
 from app.api.v1.auth import router as auth_router
 
 # Configure logging
@@ -47,6 +56,14 @@ app = FastAPI(
     description="AI-powered gift recommendation system",
     lifespan=lifespan
 )
+
+# Add error handling middleware
+app.add_middleware(ErrorHandlingMiddleware)
+
+# Add exception handlers for specific error types
+app.add_exception_handler(AuthenticationError, authentication_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
 # Configure CORS
 app.add_middleware(

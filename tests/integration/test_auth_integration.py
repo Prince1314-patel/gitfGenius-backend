@@ -177,10 +177,10 @@ class TestAuthenticationIntegration:
         assert response2.status_code == 409
         
         response_data = response2.json()
-        detail = response_data["detail"]
-        assert detail["status"] == "error"
-        assert detail["data"] is None
-        assert "already exists" in detail["message"].lower()
+        assert response_data["status"] == "error"
+        assert response_data["data"] is None
+        assert "already exists" in response_data["message"].lower()
+        assert response_data["error_code"] == "DUPLICATE_EMAIL"
         
         # Verify only one user exists in database
         statement = select(User).where(User.email == sample_user_data["email"])
@@ -208,10 +208,10 @@ class TestAuthenticationIntegration:
         assert response.status_code == 401
         
         response_data = response.json()
-        detail = response_data["detail"]
-        assert detail["status"] == "error"
-        assert detail["data"] is None
-        assert "invalid email or password" in detail["message"].lower()
+        assert response_data["status"] == "error"
+        assert response_data["data"] is None
+        assert "invalid email or password" in response_data["message"].lower()
+        assert response_data["error_code"] == "INVALID_CREDENTIALS"
         
         # Test wrong email
         wrong_email_data = {
@@ -222,9 +222,9 @@ class TestAuthenticationIntegration:
         assert response.status_code == 401
         
         response_data = response.json()
-        detail = response_data["detail"]
-        assert detail["status"] == "error"
-        assert "invalid email or password" in detail["message"].lower()
+        assert response_data["status"] == "error"
+        assert "invalid email or password" in response_data["message"].lower()
+        assert response_data["error_code"] == "INVALID_CREDENTIALS"
     
     def test_database_isolation_between_tests(self, client, test_session: Session, clean_database):
         """Test that database is properly isolated between tests."""
