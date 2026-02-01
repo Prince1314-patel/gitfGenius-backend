@@ -9,6 +9,7 @@ This module provides core security functionality including:
 
 import bcrypt
 import jwt
+import uuid
 from datetime import datetime, timedelta
 from typing import Dict, Any
 from app.core.config import settings
@@ -197,3 +198,163 @@ jwt_manager = JWTManager(
     secret_key=settings.SECRET_KEY,
     algorithm=settings.ALGORITHM
 )
+
+
+# FastAPI Authentication Dependencies
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlmodel import Session, select
+from app.database import get_session
+from app.models import User
+import jwt as jwt_lib
+
+
+# HTTPBearer security scheme for JWT token authentication
+oauth2_scheme = HTTPBearer(
+    scheme_name="JWT",
+    description="Enter JWT token",
+    auto_error=False  # We'll handle errors manually for better control
+)
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme),
+    db: Session = Depends(get_session)
+) -> User:
+    """
+    FastAPI dependency to extract and validate current user from JWT token.
+    
+    This dependency provides route protection by validating JWT tokens and
+    returning the authenticated user. It handles all token validation errors
+    and database lookups.
+    
+    Args:
+        credentials: HTTP Bearer credentials containing JWT token
+        db: Database session for user lookup
+        
+    Returns:
+        User: Authenticated user object from database
+        
+    Raises:
+        HTTPException: 401 if token is missing, invalid, expired, or user not found
+        
+    Requirements implemented:
+    - 4.1: Extracts user information from validated tokens
+    - 4.2: Rejects expired JWT tokens with appropriate error
+    - 4.3: Rejects malformed JWT tokens with appropriate error
+    - 4.4: Rejects requests lacking JWT tokens
+    - 4.5: Returns authentication errors in standardized format
+    """
+    
+    # Check if credentials are provided
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "status": "error",
+                "data": None,
+                "message": "Authentication required. Please provide a valid JWT token."
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Extract token from credentials
+    token = credentials.credentials
+    
+    try:
+        # Verify and decode the JWT token
+        payload = jwt_manager.verify_token(token)
+        
+        # Extract user ID from token payload
+        user_id = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "status": "error",
+                    "data": None,
+                    "message": "Invalid token: missing user identification."
+                },
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Convert user_id to UUID (handle conversion errors)
+        try:
+            if isinstance(user_id, str):
+                user_id = uuid.UUID(user_id)
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "status": "error",
+                    "data": None,
+                    "message": "Invalid token: malformed user identification."
+                },
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Look up user in database
+        statement = select(User).where(User.id == user_id)
+        user = db.exec(statement).first()
+        
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "status": "error",
+                    "data": None,
+                    "message": "Invalid token: user not found."
+                },
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return user
+        
+    except jwt_lib.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "status": "error",
+                "data": None,
+                "message": "Token has expired. Please login again."
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    except jwt_lib.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "status": "error",
+                "data": None,
+                "message": "Invalid token format. Please provide a valid JWT token."
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    except ValueError as e:
+        # Handle empty token or other validation errors
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "status": "error",
+                "data": None,
+                "message": f"Token validation error: {str(e)}"
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    except HTTPException:
+        # Re-raise HTTPException (don't catch our own exceptions)
+        raise
+    
+    except Exception as e:
+        # Handle any unexpected errors
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "status": "error",
+                "data": None,
+                "message": "Internal server error during authentication."
+            }
+        )
