@@ -14,6 +14,7 @@ class User(SQLModel, table=True):
     id: Optional[uuid.UUID] = Field(default_factory=uuid.uuid4, primary_key=True)
     email: str = Field(unique=True, index=True, max_length=255)
     password_hash: str = Field(max_length=255)
+    full_name: str = Field(max_length=100)
     created_at: datetime = Field(default_factory=datetime.now)
     
     # Relationships

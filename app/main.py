@@ -10,6 +10,7 @@ import logging
 from app.core.config import settings
 from app.core.supabase import supabase
 from app.core.database_init import init_database
+from app.api.v1.auth import router as auth_router
 
 # Configure logging
 logging.basicConfig(
@@ -55,6 +56,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(auth_router)
 
 
 @app.get("/")

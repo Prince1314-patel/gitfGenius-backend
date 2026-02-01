@@ -63,7 +63,7 @@ class UserInfo(BaseModel):
     """
     User information included in authentication responses.
     """
-    id: int
+    id: str  # UUID as string
     email: str
     full_name: str
     created_at: str
