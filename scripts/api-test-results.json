@@ -1,0 +1,266 @@
+﻿[
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"message\":\"GiftGenius API is running\",\"version\":\"1.0.0\",\"environment\":\"development\"}}",
+        "Time":  "0.205344",
+        "Code":  "200",
+        "Name":  "GET / root"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"api\":\"healthy\",\"database\":\"connected\",\"environment\":\"development\"}}",
+        "Time":  "0.213536",
+        "Code":  "200",
+        "Name":  "GET /health"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"user\":{\"id\":\"69bb346d-fc88-4c58-b7e5-046f6b35fb8f\",\"email\":\"curltest1_20260308122823@example.com\",\"full_name\":\"\",\"created_at\":\"2026-03-08T12:28:24.850739+00:00\"},\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjliYjM0NmQtZmM4OC00YzU4LWI3ZTUtMDQ2ZjZiMzVmYjhmIiwiZW1haWwiOiJjdXJsdGVzdDFfMjAyNjAzMDgxMjI4MjNAZXhhbXBsZS5jb20iLCJleHAiOjE3NzMwMzk1MDR9.LRb8LcERUmWOvlsETZSQh7rXJ9s4J_yx4WsnECOz-FY\",\"token_type\":\"bearer\"},\"message\":\"User registered successfully.\"}",
+        "Time":  "0.564930",
+        "Code":  "200",
+        "Name":  "POST register (email+password only)"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"user\":{\"id\":\"dea361b0-44cb-4f1e-8d86-325e1d550cb9\",\"email\":\"curltest2_20260308122823@example.com\",\"full_name\":\"Curl Test User\",\"created_at\":\"2026-03-08T12:28:25.392865+00:00\"},\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZGVhMzYxYjAtNDRjYi00ZjFlLThkODYtMzI1ZTFkNTUwY2I5IiwiZW1haWwiOiJjdXJsdGVzdDJfMjAyNjAzMDgxMjI4MjNAZXhhbXBsZS5jb20iLCJleHAiOjE3NzMwMzk1MDV9.Ucu13SWVyJQKV6oD-LtFHSp-N3Re1ydty1WCBlk4miQ\",\"token_type\":\"bearer\"},\"message\":\"User registered successfully.\"}",
+        "Time":  "0.457755",
+        "Code":  "200",
+        "Name":  "POST register (with full_name)"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"An account with this email address already exists.\",\"error_code\":\"DUPLICATE_EMAIL\"}",
+        "Time":  "0.225762",
+        "Code":  "409",
+        "Name":  "POST register duplicate email"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Request validation failed.\",\"error_code\":\"VALIDATION_ERROR\",\"details\":{\"field_errors\":{\"email\":[\"Field required\"]}}}",
+        "Time":  "0.204328",
+        "Code":  "400",
+        "Name":  "POST register missing email"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Request validation failed.\",\"error_code\":\"VALIDATION_ERROR\",\"details\":{\"field_errors\":{\"password\":[\"String should have at least 8 characters\"]}}}",
+        "Time":  "0.209301",
+        "Code":  "400",
+        "Name":  "POST register short password"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Request validation failed.\",\"error_code\":\"VALIDATION_ERROR\",\"details\":{\"field_errors\":{\"email\":[\"value is not a valid email address: An email address must have an @-sign.\"]}}}",
+        "Time":  "0.213695",
+        "Code":  "400",
+        "Name":  "POST register invalid email"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Request validation failed.\",\"error_code\":\"VALIDATION_ERROR\",\"details\":{\"field_errors\":{\"email\":[\"Field required\"],\"password\":[\"Field required\"]}}}",
+        "Time":  "0.209283",
+        "Code":  "400",
+        "Name":  "POST register empty body"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Request validation failed.\",\"error_code\":\"VALIDATION_ERROR\",\"details\":{\"field_errors\":{\"1\":[\"JSON decode error\"]}}}",
+        "Time":  "0.206200",
+        "Code":  "400",
+        "Name":  "POST register malformed JSON"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"user\":{\"id\":\"69bb346d-fc88-4c58-b7e5-046f6b35fb8f\",\"email\":\"curltest1_20260308122823@example.com\",\"full_name\":\"\",\"created_at\":\"2026-03-08T12:28:24.850739+00:00\"},\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjliYjM0NmQtZmM4OC00YzU4LWI3ZTUtMDQ2ZjZiMzVmYjhmIiwiZW1haWwiOiJjdXJsdGVzdDFfMjAyNjAzMDgxMjI4MjNAZXhhbXBsZS5jb20iLCJleHAiOjE3NzMwMzk1MDd9.hCvMsDRWvje-xBJUlBMMuN9PNOoCgM55876lLXyC3TM\",\"token_type\":\"bearer\"},\"message\":\"Login successful.\"}",
+        "Time":  "0.456901",
+        "Code":  "200",
+        "Name":  "POST login valid"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Invalid email or password.\",\"error_code\":\"INVALID_CREDENTIALS\"}",
+        "Time":  "0.517283",
+        "Code":  "401",
+        "Name":  "POST login wrong password"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Invalid email or password.\",\"error_code\":\"INVALID_CREDENTIALS\"}",
+        "Time":  "0.210950",
+        "Code":  "401",
+        "Name":  "POST login non-existent email"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Request validation failed.\",\"error_code\":\"VALIDATION_ERROR\",\"details\":{\"field_errors\":{\"email\":[\"Field required\"],\"password\":[\"Field required\"]}}}",
+        "Time":  "0.205296",
+        "Code":  "400",
+        "Name":  "POST login missing fields"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"id\":\"69bb346d-fc88-4c58-b7e5-046f6b35fb8f\",\"email\":\"curltest1_20260308122823@example.com\",\"full_name\":\"\",\"created_at\":\"2026-03-08T12:28:24.850739+00:00\"},\"message\":\"Profile retrieved successfully.\"}",
+        "Time":  "0.211772",
+        "Code":  "200",
+        "Name":  "GET profile with token"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Authentication required. Please provide a valid JWT token.\",\"error_code\":\"MISSING_TOKEN\"}",
+        "Time":  "0.204033",
+        "Code":  "401",
+        "Name":  "GET profile without token"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Invalid token format. Please provide a valid JWT token.\",\"error_code\":\"INVALID_TOKEN\"}",
+        "Time":  "0.206602",
+        "Code":  "401",
+        "Name":  "GET profile invalid token"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Authentication required. Please provide a valid JWT token.\",\"error_code\":\"MISSING_TOKEN\"}",
+        "Time":  "0.212377",
+        "Code":  "401",
+        "Name":  "POST contact without auth"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"id\":\"546aa110-74c0-4583-a4aa-90acb17e1ec9\",\"name\":\"Alice Friend\",\"relationship_type\":\"Friend\",\"birthday\":\"1990-05-15\",\"created_at\":\"2026-03-08T12:28:29.775829+00:00\",\"memory_count\":null},\"message\":\"Contact added successfully\"}",
+        "Time":  "0.270778",
+        "Code":  "201",
+        "Name":  "POST contact valid"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"id\":\"4c151f90-2a0c-4f9f-97f4-d3bccc8e4a70\",\"name\":\"Bob\",\"relationship_type\":null,\"birthday\":null,\"created_at\":\"2026-03-08T12:28:30.086554+00:00\",\"memory_count\":null},\"message\":\"Contact added successfully\"}",
+        "Time":  "0.218008",
+        "Code":  "201",
+        "Name":  "POST contact minimal (name only)"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"id\":\"b004dca8-7f45-4068-8b49-66109c403dbe\",\"name\":\"Charlie\",\"relationship_type\":\"Colleague\",\"birthday\":null,\"created_at\":\"2026-03-08T12:28:30.351858+00:00\",\"memory_count\":null},\"message\":\"Contact added successfully\"}",
+        "Time":  "0.228488",
+        "Code":  "201",
+        "Name":  "POST contact as user2"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"id\":\"188adf73-225a-4102-960c-3980d4adf348\",\"name\":\"\",\"relationship_type\":null,\"birthday\":null,\"created_at\":\"2026-03-08T12:28:30.630286+00:00\",\"memory_count\":null},\"message\":\"Contact added successfully\"}",
+        "Time":  "0.348975",
+        "Code":  "201",
+        "Name":  "POST contact empty name"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"contacts\":[{\"id\":\"546aa110-74c0-4583-a4aa-90acb17e1ec9\",\"name\":\"Alice Friend\",\"relationship_type\":\"Friend\",\"birthday\":\"1990-05-15\",\"created_at\":\"2026-03-08T12:28:29.775829+00:00\",\"memory_count\":0},{\"id\":\"4c151f90-2a0c-4f9f-97f4-d3bccc8e4a70\",\"name\":\"Bob\",\"relationship_type\":null,\"birthday\":null,\"created_at\":\"2026-03-08T12:28:30.086554+00:00\",\"memory_count\":0},{\"id\":\"188adf73-225a-4102-960c-3980d4adf348\",\"name\":\"\",\"relationship_type\":null,\"birthday\":null,\"created_at\":\"2026-03-08T12:28:30.630286+00:00\",\"memory_count\":0}]},\"message\":\"\"}",
+        "Time":  "0.246501",
+        "Code":  "200",
+        "Name":  "GET contacts list"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Authentication required. Please provide a valid JWT token.\",\"error_code\":\"MISSING_TOKEN\"}",
+        "Time":  "0.211096",
+        "Code":  "401",
+        "Name":  "GET contacts without auth"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"id\":\"546aa110-74c0-4583-a4aa-90acb17e1ec9\",\"name\":\"Alice Friend\",\"relationship_type\":\"Friend\",\"birthday\":\"1990-05-15\",\"created_at\":\"2026-03-08T12:28:29.775829+00:00\",\"memory_count\":null},\"message\":\"\"}",
+        "Time":  "0.229811",
+        "Code":  "200",
+        "Name":  "GET contact by id"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Authentication required. Please provide a valid JWT token.\",\"error_code\":\"MISSING_TOKEN\"}",
+        "Time":  "0.217932",
+        "Code":  "401",
+        "Name":  "GET contact by id without auth"
+    },
+    {
+        "Body":  "{\"detail\":\"You don\u0027t have access to this contact\"}",
+        "Time":  "0.222058",
+        "Code":  "403",
+        "Name":  "GET contact other user (403)"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Request validation failed.\",\"error_code\":\"VALIDATION_ERROR\",\"details\":{\"field_errors\":{\"contact_id\":[\"Input should be a valid UUID, invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `n` at 1\"]}}}",
+        "Time":  "0.219785",
+        "Code":  "400",
+        "Name":  "GET contact invalid UUID"
+    },
+    {
+        "Body":  "{\"detail\":\"Contact not found\"}",
+        "Time":  "0.230581",
+        "Code":  "404",
+        "Name":  "GET contact non-existent UUID"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Authentication required. Please provide a valid JWT token.\",\"error_code\":\"MISSING_TOKEN\"}",
+        "Time":  "0.208553",
+        "Code":  "401",
+        "Name":  "POST memory without auth"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"id\":\"b61410e3-9aa3-4c7d-be24-7554fa7e8d8e\",\"content\":\"Alice loves matcha tea\",\"created_at\":\"2026-03-08T12:28:33.267201+00:00\"},\"message\":\"Memory saved\"}",
+        "Time":  "0.228095",
+        "Code":  "201",
+        "Name":  "POST memory valid"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Request validation failed.\",\"error_code\":\"VALIDATION_ERROR\",\"details\":{\"field_errors\":{\"content\":[\"String should have at least 1 character\"]}}}",
+        "Time":  "0.209467",
+        "Code":  "400",
+        "Name":  "POST memory empty content"
+    },
+    {
+        "Body":  "{\"detail\":\"You don\u0027t have access to this contact\"}",
+        "Time":  "0.215465",
+        "Code":  "403",
+        "Name":  "POST memory to other user contact (403)"
+    },
+    {
+        "Body":  "{\"detail\":\"Contact not found\"}",
+        "Time":  "0.224368",
+        "Code":  "404",
+        "Name":  "POST memory to non-existent contact"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":{\"memories\":[{\"id\":\"b61410e3-9aa3-4c7d-be24-7554fa7e8d8e\",\"content\":\"Alice loves matcha tea\",\"created_at\":\"2026-03-08T12:28:33.267201+00:00\"}]},\"message\":\"\"}",
+        "Time":  "0.274984",
+        "Code":  "200",
+        "Name":  "GET memories list"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Authentication required. Please provide a valid JWT token.\",\"error_code\":\"MISSING_TOKEN\"}",
+        "Time":  "0.209603",
+        "Code":  "401",
+        "Name":  "GET memories without auth"
+    },
+    {
+        "Body":  "{\"detail\":\"You don\u0027t have access to this contact\"}",
+        "Time":  "0.214875",
+        "Code":  "403",
+        "Name":  "GET memories other user (403)"
+    },
+    {
+        "Body":  "{\"status\":\"success\",\"data\":null,\"message\":\"Contact deleted successfully\"}",
+        "Time":  "0.240267",
+        "Code":  "200",
+        "Name":  "DELETE contact"
+    },
+    {
+        "Body":  "{\"detail\":\"Contact not found\"}",
+        "Time":  "0.210094",
+        "Code":  "404",
+        "Name":  "DELETE contact again (404)"
+    },
+    {
+        "Body":  "{\"status\":\"error\",\"data\":null,\"message\":\"Authentication required. Please provide a valid JWT token.\",\"error_code\":\"MISSING_TOKEN\"}",
+        "Time":  "0.215443",
+        "Code":  "401",
+        "Name":  "DELETE contact without auth"
+    },
+    {
+        "Body":  "{\"detail\":\"You don\u0027t have access to this contact\"}",
+        "Time":  "0.210225",
+        "Code":  "403",
+        "Name":  "DELETE other user contact (403)"
+    },
+    {
+        "Body":  "{\"detail\":\"Method Not Allowed\"}",
+        "Time":  "0.204632",
+        "Code":  "405",
+        "Name":  "GET /api/v1/auth/register (405)"
+    },
+    {
+        "Body":  "{\"detail\":\"Method Not Allowed\"}",
+        "Time":  "0.221646",
+        "Code":  "405",
+        "Name":  "OPTIONS /api/v1/contacts (CORS)"
+    },
+    {
+        "Body":  "",
+        "Time":  "0.2104308",
+        "Code":  "N/A",
+        "Name":  "GET / avg (5 runs)"
+    }
+]
