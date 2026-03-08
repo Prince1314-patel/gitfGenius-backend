@@ -96,9 +96,10 @@ giftgenius-backend/
 │   └── api/
 │       └── v1/
 │           ├── __init__.py
-│           ├── auth.py      # Authentication endpoints (to be added)
-│           ├── contacts.py  # Contact management (to be added)
-│           └── memories.py  # Memory management (to be added)
+│           ├── auth.py      # Authentication endpoints
+│           ├── calendar.py  # Calendar / upcoming birthdays
+│           ├── contacts.py  # Contact management
+│           └── memories.py  # Memory management
 ├── .env                     # Environment variables (not in git)
 ├── .env.example             # Environment template
 ├── .gitignore
@@ -146,6 +147,8 @@ Returns API status and version.
 GET /health
 ```
 Returns detailed health check including database connection status.
+
+For the full list of API endpoints (auth, contacts, memories, **calendar**), request/response shapes, and code examples, see **[Frontend Integration Guide](docs/FRONTEND_INTEGRATION.md)**.
 
 ## 🗄️ Database Setup
 

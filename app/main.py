@@ -20,6 +20,7 @@ from app.core.middleware import (
 )
 from app.core.exceptions import AuthenticationError
 from app.api.v1.auth import router as auth_router
+from app.api.v1.calendar import router as calendar_router
 from app.api.v1.contacts import router as contacts_router
 from app.api.v1.memories import router as memories_router
 
@@ -77,8 +78,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers with API versioning (memories before contacts so /{id}/memories is matched first)
+# Include routers with API versioning (calendar before contacts so /calendar is not matched as /contacts/{id})
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(memories_router, prefix="/api/v1")
 app.include_router(contacts_router, prefix="/api/v1")
 

@@ -417,6 +417,80 @@ List memories for a contact (newest first).
 
 ---
 
+### 6.5 Calendar (requires auth)
+
+#### `GET /api/v1/calendar`
+
+List upcoming birthdays for the current user's contacts. Only contacts with a birthday set are included. Events are ordered by **next occurrence** (soonest first), so the calendar view can show "upcoming birthdays at a glance."
+
+**Response (200):**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "events": [
+      {
+        "contact_id": "uuid-string",
+        "contact_name": "Alice",
+        "birthday": "1990-05-15",
+        "next_occurrence": "2026-05-15",
+        "days_until": 68
+      }
+    ]
+  },
+  "message": ""
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `contact_id` | string (UUID) | Link to the contact |
+| `contact_name` | string | Display name |
+| `birthday` | string | Original birthday, ISO date `YYYY-MM-DD` |
+| `next_occurrence` | string | Next occurrence of the birthday (this year or next), ISO date |
+| `days_until` | int | Days until `next_occurrence` (0 = today) |
+
+**Notes:** Feb 29 birthdays in non-leap years use March 1 as the next occurrence. Empty list when the user has no contacts with a birthday set.
+
+**Errors:** 401 (missing/invalid/expired token).
+
+---
+
+### Message for frontend: Calendar integration
+
+**You can copy the block below and send it to the frontend team (Slack, email, or pin in your docs).**
+
+---
+
+**Calendar API is ready for integration**
+
+The backend now exposes **`GET /api/v1/calendar`** so the Calendar page can show “upcoming birthdays at a glance” instead of “Coming Soon.”
+
+**What you need to do**
+
+1. **Call the endpoint** when the user opens the Calendar page (or when the app loads, if you prefetch).
+   - **Method:** `GET`
+   - **URL:** `${API_V1}/calendar` (e.g. `http://localhost:8000/api/v1/calendar`)
+   - **Auth:** Send the same Bearer token as for contacts/memories: `Authorization: Bearer <access_token>`
+
+2. **Handle the response** (same envelope as contacts/memories):
+   - On success: `status === "success"`, use `data.events` (array of birthday events).
+   - On 401: treat like other protected routes (e.g. clear token, redirect to login).
+
+3. **Use each event** in `data.events`:
+   - `contact_id` – use for linking to the contact (e.g. `/contacts/:id`).
+   - `contact_name` – display name.
+   - `birthday` – original birthday (ISO `YYYY-MM-DD`).
+   - `next_occurrence` – next occurrence (this year or next), ISO date; use for “when” in the calendar.
+   - `days_until` – number of days until that date (0 = today); use for “in X days” or sorting.
+
+Events are **already ordered by next occurrence** (soonest first). If there are no contacts with a birthday, `data.events` is an empty array.
+
+**Docs:** Full request/response shape and notes (e.g. Feb 29 → March 1 in non‑leap years) are in this guide under **6.5 Calendar**. Code example: **9.3 Fetch: get calendar (upcoming birthdays)**.
+
+---
+
 ## 7. Error Handling
 
 ### 7.1 HTTP status codes
@@ -566,7 +640,34 @@ async function createContact(token, { name, relationship_type, birthday }) {
 }
 ```
 
-### 9.3 Axios: shared client with interceptors
+### 9.3 Fetch: get calendar (upcoming birthdays)
+
+```javascript
+async function getCalendarEvents(token) {
+  const res = await fetch(`${API_V1}/calendar`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const json = await res.json();
+
+  if (json.status === 'error') {
+    if (json.error_code === 'TOKEN_EXPIRED' || json.error_code === 'INVALID_TOKEN') {
+      // Clear token and redirect to login
+    }
+    throw new Error(json.message);
+  }
+
+  // data.events is already sorted by next_occurrence (soonest first)
+  return json.data.events;
+}
+
+// Usage: replace "Coming Soon" on /calendar with this data
+// const events = await getCalendarEvents(accessToken);
+// events.forEach((e) => {
+//   e.contact_id, e.contact_name, e.birthday, e.next_occurrence, e.days_until
+// });
+```
+
+### 9.4 Axios: shared client with interceptors
 
 ```javascript
 import axios from 'axios';
@@ -609,6 +710,10 @@ api.interceptors.response.use(
 await api.post('/auth/login', { email, password });
 const { data } = await api.get('/contacts');
 const contacts = data.data.contacts;
+
+// Calendar (upcoming birthdays, already sorted by next_occurrence)
+const cal = await api.get('/calendar');
+const events = cal.data.data.events; // [{ contact_id, contact_name, birthday, next_occurrence, days_until }, ...]
 ```
 
 ---
@@ -626,6 +731,7 @@ Use this to verify integration in one shot:
 - [ ] **CORS:** Frontend origin is `http://localhost:8080` or `http://127.0.0.1:8080`, or backend has your origin in `allow_origins`.
 - [ ] **Contacts:** Create (POST), list (GET), get one (GET by id), delete (DELETE); handle 403/404.
 - [ ] **Memories:** Create (POST `/{contact_id}/memories`), list (GET `/{contact_id}/memories`); handle 403/404 for wrong contact.
+- [ ] **Calendar:** List upcoming birthdays (GET `/calendar`); use `data.events` (contact_id, contact_name, birthday, next_occurrence, days_until); 401 when not authenticated.
 - [ ] **IDs:** All IDs (user, contact, memory) are UUIDs; use them as strings in path and request/response.
 - [ ] **Dates:** All date/time fields are ISO 8601 strings (e.g. `created_at`).
 

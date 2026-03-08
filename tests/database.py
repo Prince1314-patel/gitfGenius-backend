@@ -8,8 +8,10 @@ for fast, isolated testing without affecting production data.
 import pytest
 from sqlmodel import SQLModel, create_engine, Session
 from sqlalchemy.pool import StaticPool
+
 from app.database import get_session
-from app.main import app
+from app.main import app as fastapi_app
+import app.models  # noqa: F401 - ensure tables are registered on SQLModel.metadata before create_all
 
 
 # Test database URL - Use shared in-memory SQLite database
@@ -48,16 +50,16 @@ def setup_test_database():
     Scope: session - runs once for all tests
     Autouse: True - automatically used by all tests
     """
-    # Create all tables in test database
+    # Create all tables in test database (app.models already loaded via app.main import above)
     SQLModel.metadata.create_all(test_engine)
     
     # Override the database dependency
-    app.dependency_overrides[get_session] = get_test_session
+    fastapi_app.dependency_overrides[get_session] = get_test_session
     
     yield  # This is where tests run
     
     # Cleanup after all tests
-    app.dependency_overrides.clear()
+    fastapi_app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function")

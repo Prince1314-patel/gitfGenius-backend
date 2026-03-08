@@ -125,3 +125,19 @@ class MemoryResponse(BaseModel):
 class MemoryListData(BaseModel):
     """Data wrapper for list of memories."""
     memories: list[MemoryResponse]
+
+
+# Calendar schemas
+
+class BirthdayEventResponse(BaseModel):
+    """Response schema for a single birthday event in the calendar view."""
+    contact_id: str = Field(..., description="UUID of the contact")
+    contact_name: str = Field(..., description="Display name of the contact")
+    birthday: str = Field(..., description="Original birthday in ISO date format (YYYY-MM-DD)")
+    next_occurrence: str = Field(..., description="Next occurrence of birthday (this year or next)")
+    days_until: int = Field(..., description="Days until next_occurrence (0 = today)")
+
+
+class CalendarData(BaseModel):
+    """Data wrapper for calendar birthday events."""
+    events: list[BirthdayEventResponse]
