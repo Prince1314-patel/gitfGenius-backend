@@ -46,26 +46,47 @@ class TestRequestSchemaValidation:
         assert "detail" in response_data or "status" in response_data
     
     def test_registration_schema_validation_missing_fields(self, client):
-        """Test registration endpoint with missing required fields."""
+        """Test registration endpoint with missing required fields.
+
+        full_name is optional (frontend contract); only email and password are required.
+        """
         test_cases = [
             {},  # All fields missing
-            {"email": "test@example.com"},  # Missing password and full_name
-            {"password": "SecurePass123!"},  # Missing email and full_name
+            {"email": "test@example.com"},  # Missing password
+            {"password": "SecurePass123!"},  # Missing email
             {"full_name": "Test User"},  # Missing email and password
-            {"email": "test@example.com", "password": "SecurePass123!"},  # Missing full_name
             {"email": "test@example.com", "full_name": "Test User"},  # Missing password
             {"password": "SecurePass123!", "full_name": "Test User"},  # Missing email
         ]
-        
         for test_data in test_cases:
             response = client.post("/api/v1/auth/register", json=test_data)
-            
-            # Should return 422 for validation error
             assert response.status_code in [400, 422], f"Failed for data: {test_data}"
-            
             response_data = response.json()
             assert "detail" in response_data or "status" in response_data
-    
+
+    def test_registration_succeeds_with_email_and_password_only(self, client, mock_db_session):
+        """Registration with only email and password (no full_name) succeeds per frontend contract."""
+        mock_result = Mock()
+        mock_result.first.return_value = None
+        mock_db_session.exec.return_value = mock_result
+        mock_db_session.add = Mock()
+        mock_db_session.commit = Mock()
+        mock_db_session.refresh = Mock()
+        import uuid
+        from datetime import datetime
+        def mock_refresh(user):
+            user.id = uuid.uuid4()
+            user.created_at = datetime.now()
+        mock_db_session.refresh.side_effect = mock_refresh
+
+        payload = {"email": "nofullname@example.com", "password": "SecurePass123!"}
+        response = client.post("/api/v1/auth/register", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["data"]["user"]["email"] == payload["email"]
+        assert data["data"]["user"]["full_name"] == ""
+
     def test_registration_schema_validation_extra_fields(self, client, mock_db_session):
         """Test registration endpoint with extra fields."""
         # Mock successful database operations
@@ -516,31 +537,26 @@ class TestEdgeCases:
         return TestClient(app)
     
     def test_null_values_in_required_fields(self, client):
-        """Test null values in required fields."""
+        """Test null values in required fields. full_name may be null (optional)."""
         test_cases = [
             {"email": None, "password": "SecurePass123!", "full_name": "Test User"},
             {"email": "test@example.com", "password": None, "full_name": "Test User"},
-            {"email": "test@example.com", "password": "SecurePass123!", "full_name": None},
         ]
-        
         for test_data in test_cases:
             response = client.post("/api/v1/auth/register", json=test_data)
-            
-            # Should return validation error
             assert response.status_code in [400, 422], f"Failed for data: {test_data}"
     
     def test_empty_string_values(self, client):
-        """Test empty string values in required fields."""
-        test_cases = [
+        """Test empty string values in required fields.
+
+        full_name may be empty (optional per frontend contract); only email and password must be non-empty.
+        """
+        invalid_cases = [
             {"email": "", "password": "SecurePass123!", "full_name": "Test User"},
             {"email": "test@example.com", "password": "", "full_name": "Test User"},
-            {"email": "test@example.com", "password": "SecurePass123!", "full_name": ""},
         ]
-        
-        for test_data in test_cases:
+        for test_data in invalid_cases:
             response = client.post("/api/v1/auth/register", json=test_data)
-            
-            # Should return validation error
             assert response.status_code in [400, 422], f"Failed for data: {test_data}"
     
     def test_whitespace_only_values(self, client):

@@ -3,7 +3,8 @@
 # Usage: .\scripts\setup-postgres.ps1
 
 $ErrorActionPreference = "Stop"
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+# Script lives in scripts/; project root is the parent of scripts/
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectRoot
 
 Write-Host "Checking Docker..." -ForegroundColor Cyan

@@ -38,18 +38,21 @@ class StandardResponse(BaseModel, Generic[T]):
 class UserRegistrationRequest(BaseModel):
     """
     Request schema for user registration.
-    
-    Validates email format and enforces password security requirements:
-    - Minimum 8 characters
-    - At least one uppercase letter, lowercase letter, digit, and special character
+
+    Aligns with frontend contract: only email and password are required.
+    full_name is optional (defaults to empty string) for frontend compatibility.
     """
     email: EmailStr = Field(..., description="Valid email address for user account")
     password: str = Field(
-        ..., 
+        ...,
         min_length=8,
-        description="Password must be at least 8 characters long"
+        description="Password must be at least 8 characters long",
     )
-    full_name: str = Field(..., min_length=1, max_length=100, description="User's full name")
+    full_name: Optional[str] = Field(
+        default="",
+        max_length=100,
+        description="User's full name (optional); frontend may omit.",
+    )
 
 
 class UserLoginRequest(BaseModel):

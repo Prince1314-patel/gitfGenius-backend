@@ -119,11 +119,11 @@ async def register_user(
         # Hash the password
         hashed_password = password_manager.hash_password(user_data.password)
         
-        # Create new user
+        # Create new user (full_name optional per frontend contract; default to "")
         new_user = User(
             email=user_data.email,
             password_hash=hashed_password,
-            full_name=user_data.full_name
+            full_name=user_data.full_name or "",
         )
         
         # Add to database
@@ -138,12 +138,12 @@ async def register_user(
         }
         access_token = jwt_manager.create_access_token(token_data)
         
-        # Create user info for response
+        # Create user info for response (full_name may be "" if omitted at registration)
         user_info = UserInfo(
             id=str(new_user.id),
             email=new_user.email,
-            full_name=new_user.full_name,
-            created_at=new_user.created_at.isoformat()
+            full_name=new_user.full_name or "",
+            created_at=new_user.created_at.isoformat(),
         )
         
         # Create authentication response
