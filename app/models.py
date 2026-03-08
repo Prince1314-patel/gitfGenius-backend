@@ -33,7 +33,9 @@ class Contact(SQLModel, table=True):
     
     # Relationships
     user: User = Relationship(back_populates="contacts")
-    memories: list["Memory"] = Relationship(back_populates="contact")
+    memories: list["Memory"] = Relationship(
+        back_populates="contact", cascade_delete=True
+    )
 
 
 class Memory(SQLModel, table=True):

@@ -5,6 +5,7 @@ This module defines Pydantic models for API request validation and response form
 Authentication schemas will be implemented in task 2.1.
 """
 
+from datetime import date
 from typing import Optional, Generic, TypeVar, Literal
 from pydantic import BaseModel, EmailStr, Field
 
@@ -72,9 +73,52 @@ class UserInfo(BaseModel):
 class AuthenticationResponse(BaseModel):
     """
     Response schema for successful authentication.
-    
+
     Contains user information and JWT access token for API authorization.
     """
     user: UserInfo
     access_token: str = Field(..., description="JWT access token for API authorization")
     token_type: str = Field(default="bearer", description="Token type for Authorization header")
+
+
+# Contact schemas
+
+class ContactCreate(BaseModel):
+    """Request schema for creating a contact."""
+    name: str = Field(..., max_length=255, description="Contact name")
+    relationship_type: Optional[str] = Field(default=None, max_length=100)
+    birthday: Optional[date] = Field(default=None)
+
+
+class ContactResponse(BaseModel):
+    """Response schema for a single contact."""
+    id: str
+    name: str
+    relationship_type: Optional[str] = None
+    birthday: Optional[str] = None
+    created_at: str
+    memory_count: Optional[int] = None
+
+
+class ContactListData(BaseModel):
+    """Data wrapper for list of contacts."""
+    contacts: list[ContactResponse]
+
+
+# Memory schemas
+
+class MemoryCreate(BaseModel):
+    """Request schema for creating a memory."""
+    content: str = Field(..., min_length=1, max_length=5000)
+
+
+class MemoryResponse(BaseModel):
+    """Response schema for a single memory."""
+    id: str
+    content: str
+    created_at: str
+
+
+class MemoryListData(BaseModel):
+    """Data wrapper for list of memories."""
+    memories: list[MemoryResponse]

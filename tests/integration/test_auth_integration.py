@@ -363,7 +363,7 @@ class TestAuthenticationIntegration:
         
         # Test with expired token (simulate by creating token with past expiration)
         import time
-        from jose import jwt
+        import jwt as jwt_lib
         from app.core.config import settings
         
         expired_payload = {
@@ -371,7 +371,11 @@ class TestAuthenticationIntegration:
             "email": "test@example.com",
             "exp": int(time.time()) - 3600  # Expired 1 hour ago
         }
-        expired_token = jwt.encode(expired_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        expired_token = jwt_lib.encode(
+            expired_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        )
+        if isinstance(expired_token, bytes):
+            expired_token = expired_token.decode("utf-8")
         
         headers = {"Authorization": f"Bearer {expired_token}"}
         response = client.get("/api/v1/auth/profile", headers=headers)
