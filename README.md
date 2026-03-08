@@ -207,6 +207,7 @@ For production, consider using:
 ## 📖 Documentation
 
 For detailed implementation guide, see:
+- **[Frontend Integration Guide](docs/FRONTEND_INTEGRATION.md)** – Base URL, auth, all endpoints, request/response shapes, error handling, and code examples for frontend teams
 - [Implementation Plan](docs/implementation_plan.md)
 - [Backend Structure](docs/backend_structure.md)
 - [Supabase Setup Guide](docs/supabase_setup.md) (if available)
