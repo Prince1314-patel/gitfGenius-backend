@@ -2,6 +2,11 @@
 Test configuration for property-based tests and database setup.
 """
 
+import os
+
+# Use SQLite for tests if DATABASE_URL not set (e.g. no .env)
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
+
 from hypothesis import settings, Verbosity
 import pytest
 from tests.database import setup_test_database, test_session, clean_database

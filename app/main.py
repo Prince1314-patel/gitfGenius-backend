@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 import logging
 
 from app.core.config import settings
-from app.core.supabase import supabase
+from app.database import engine
 from app.core.database_init import init_database
 from app.core.middleware import (
     ErrorHandlingMiddleware,
@@ -40,8 +40,8 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize database tables
     logger.info("🚀 Starting GiftGenius API...")
     try:
-        init_database(supabase)
-        logger.info("✅ Application startup complete")
+        init_database(engine)
+        logger.info("Application startup complete")
     except Exception as e:
         logger.error(f"❌ Startup failed: {str(e)}")
         # Continue anyway - the app can still run, just database might have issues
@@ -97,10 +97,11 @@ def root():
 
 @app.get("/health")
 def health_check():
-    """Detailed health check"""
+    """Detailed health check (PostgreSQL connection)."""
+    from sqlalchemy import text
     try:
-        # Test Supabase connection
-        response = supabase.table("users").select("id").limit(1).execute()
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
         db_status = "connected"
     except Exception as e:
         db_status = f"error: {str(e)}"

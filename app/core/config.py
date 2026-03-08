@@ -9,12 +9,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings"""
     
-    # Database
+    # Database (PostgreSQL connection string)
     DATABASE_URL: str
-    
-    # Supabase
-    SUPABASE_URL: str
-    SUPABASE_ANON_KEY: str
     
     # JWT
     SECRET_KEY: str
@@ -28,6 +24,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  # Ignore extra keys in .env (e.g. old SUPABASE_*)
 
 
 # Global settings instance

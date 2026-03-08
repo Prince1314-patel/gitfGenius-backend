@@ -263,7 +263,7 @@ class TestErrorMessageSecurity:
         
         sensitive_patterns = [
             # Database-related
-            "database", "sql", "postgres", "supabase", "connection",
+            "database", "sql", "postgres", "connection",
             # System paths
             "/app/", "/home/", "c:\\", "d:\\",
             # Internal errors

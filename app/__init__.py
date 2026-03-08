@@ -1,6 +1,6 @@
 """
 GiftGenius Backend API
-FastAPI application with Supabase integration
+FastAPI application with PostgreSQL
 """
 
 __version__ = "1.0.0"

@@ -1,0 +1,24 @@
+# PostgreSQL for GiftGenius (local development)
+# Run: docker compose up -d
+# Stop: docker compose down
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: giftgenius-postgres
+    environment:
+      POSTGRES_USER: prince1314
+      POSTGRES_PASSWORD: "@Prince1314"
+      POSTGRES_DB: giftgenius
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prince1314 -d giftgenius"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

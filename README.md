@@ -1,15 +1,36 @@
 # GiftGenius Backend
 
-AI-powered gift recommendation system backend built with FastAPI and Supabase.
+AI-powered gift recommendation system backend built with FastAPI and PostgreSQL.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.8 or higher
-- A Supabase account and project ([sign up here](https://supabase.com))
+- Docker and Docker Compose (for local PostgreSQL)
 
-### 1. Clone and Setup
+### 1. Start PostgreSQL with Docker
+
+**Docker Desktop must be running** (otherwise you get `dockerDesktopLinuxEngine: The system cannot find the file specified`).
+
+From the project root, run the setup script (starts Postgres in background, creates tables, verifies inside Docker):
+
+```powershell
+.\scripts\setup-postgres.ps1
+```
+
+This script:
+- Starts the Postgres container in the background (`docker compose up -d`)
+- Waits until Postgres is ready
+- Runs the migration **inside the container** to create tables
+- **Verifies tables** with a query run **inside Docker only**: `docker exec giftgenius-postgres psql ... -c "SELECT table_name FROM information_schema.tables ..."`
+
+Manual alternative (same credentials):
+- **User:** `prince1314` | **Password:** `@Prince1314` | **Database:** `giftgenius` | **Port:** `5432`
+- Create tables: `Get-Content migrations\001_create_tables.sql | docker exec -i giftgenius-postgres psql -U prince1314 -d giftgenius`
+- Verify: `docker exec giftgenius-postgres psql -U prince1314 -d giftgenius -c "\dt"`
+
+### 2. Clone and Setup
 
 ```bash
 # Navigate to project directory
@@ -28,35 +49,27 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment Variables
+### 3. Configure Environment Variables
 
-Copy `.env.example` to `.env` and fill in your Supabase credentials:
+Copy `.env.example` to `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-Get your Supabase credentials from:
-1. Go to [Supabase Dashboard](https://app.supabase.com)
-2. Select your project
-3. Go to **Settings** → **API**
-4. Copy:
-   - **Project URL** → `SUPABASE_URL`
-   - **anon/public key** → `SUPABASE_ANON_KEY`
+Edit `.env`: set `DATABASE_URL` (already correct for Docker if you use user `prince1314` and password `@Prince1314`). The `@` in the password must be written as `%40` in the URL:
 
-Your `.env` should look like:
-```bash
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
-SECRET_KEY=your-generated-secret-key
+```
+DATABASE_URL=postgresql://prince1314:%40Prince1314@localhost:5432/giftgenius
 ```
 
-Generate a SECRET_KEY:
+Generate a `SECRET_KEY` for JWT:
+
 ```bash
 openssl rand -hex 32
 ```
 
-### 3. Run the Application
+### 4. Run the Application
 
 ```bash
 # Make sure virtual environment is activated
@@ -78,7 +91,7 @@ giftgenius-backend/
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── config.py        # Configuration settings
-│   │   ├── supabase.py      # Supabase client initialization
+│   │   ├── database_init.py # PostgreSQL table checks and migration helper
 │   │   └── security.py      # JWT and authentication (to be added)
 │   └── api/
 │       └── v1/
@@ -136,46 +149,25 @@ Returns detailed health check including database connection status.
 
 ## 🗄️ Database Setup
 
-### Using Supabase Dashboard
+PostgreSQL runs via Docker (see Quick Start). Tables are created by running `migrations/001_create_tables.sql` once. To run it again (idempotent):
 
-1. Go to your Supabase project dashboard
-2. Navigate to **Table Editor**
-3. Create tables for your application:
-   - `users` - User accounts
-   - `contacts` - User contacts
-   - `memories` - Contact memories
-
-### Example: Create Users Table
-
-In Supabase SQL Editor, run:
-
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+```bash
+docker exec -i giftgenius-postgres psql -U prince1314 -d giftgenius < migrations/001_create_tables.sql
 ```
 
 ## 🔐 Security
 
 - **Never commit `.env` file** - It's already in `.gitignore`
 - **Use strong SECRET_KEY** - Generate with `openssl rand -hex 32`
-- **Enable Row Level Security (RLS)** in Supabase for production
-- **Use SUPABASE_ANON_KEY** for client-side apps
-- **Never expose SUPABASE_SERVICE_ROLE_KEY** to clients
+- Use a strong `SECRET_KEY` and keep `.env` out of version control
 
 ## 🧪 Testing
 
-### Test Supabase Connection
+### Test PostgreSQL Connection
 
-```python
-from app.core.supabase import supabase
-
-# List tables
-response = supabase.table("users").select("*").limit(5).execute()
-print(response.data)
+```bash
+# From host
+docker exec -it giftgenius-postgres psql -U prince1314 -d giftgenius -c "SELECT 1;"
 ```
 
 ### Test API Endpoints
@@ -186,7 +178,7 @@ Visit http://localhost:8000/docs and use the interactive Swagger UI.
 
 - **FastAPI** - Modern web framework
 - **Uvicorn** - ASGI server
-- **Supabase** - Backend-as-a-Service client
+- **PostgreSQL** - Database (via SQLModel/psycopg2)
 - **Python-Jose** - JWT token handling
 - **Passlib** - Password hashing
 - **Pydantic** - Data validation
@@ -196,8 +188,7 @@ Visit http://localhost:8000/docs and use the interactive Swagger UI.
 ### Environment Variables
 
 Ensure these are set in your production environment:
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
+- `DATABASE_URL` (PostgreSQL connection string)
 - `SECRET_KEY`
 - `ENVIRONMENT=production`
 - `DEBUG=False`
@@ -252,11 +243,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Supabase connection errors
+### Database connection errors
 
-1. Check `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `.env`
-2. Verify Supabase project is active (not paused)
-3. Check network connection
+1. **Docker not running:** Start Docker Desktop (Windows/Mac) or the Docker daemon. Then run `docker compose up -d`.
+2. Ensure Docker Postgres is running: `docker compose ps`
+3. Check `DATABASE_URL` in `.env` (password `@` must be `%40` in the URL)
+4. Confirm tables exist: run `migrations/001_create_tables.sql` once (see Database Setup)
 
 ### Port already in use
 
@@ -269,9 +261,9 @@ uvicorn app.main:app --reload --port 3000
 
 For issues and questions:
 - Check the [documentation](docs/)
-- Review [Supabase docs](https://supabase.com/docs)
+- Review [PostgreSQL docs](https://www.postgresql.org/docs/)
 - Review [FastAPI docs](https://fastapi.tiangolo.com)
 
 ---
 
-**Built with ❤️ using FastAPI and Supabase**
+**Built with ❤️ using FastAPI and PostgreSQL**
