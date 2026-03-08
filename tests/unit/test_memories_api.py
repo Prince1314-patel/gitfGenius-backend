@@ -6,6 +6,7 @@ and 404/403 behavior without a real database.
 """
 
 import uuid
+from contextlib import contextmanager
 from datetime import datetime
 from unittest.mock import Mock
 
@@ -30,6 +31,7 @@ def mock_user():
     )
 
 
+@contextmanager
 def _override_deps(client, mock_db, current_user):
     """Override get_session and get_current_user."""
     def get_session_override():
@@ -84,8 +86,8 @@ class TestCreateMemory:
         assert data["data"]["content"] == "Loves matcha tea"
         assert data["message"] == "Memory saved"
 
-    def test_create_memory_contact_not_found_returns_404(self, mock_user):
-        """Create memory for non-existent contact returns 404."""
+    def test_create_memory_contact_not_found_returns_404_with_envelope(self, mock_user):
+        """Create memory for non-existent contact returns 404 with standardized envelope."""
         mock_db = Mock()
         mock_db.get.return_value = None
 
@@ -97,10 +99,13 @@ class TestCreateMemory:
             )
 
         assert response.status_code == 404
-        assert "not found" in response.json()["detail"].lower()
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "NOT_FOUND"
+        assert "not found" in data.get("message", "").lower()
 
-    def test_create_memory_forbidden_returns_403(self, mock_user):
-        """Create memory for contact owned by another user returns 403."""
+    def test_create_memory_forbidden_returns_403_with_envelope(self, mock_user):
+        """Create memory for contact owned by another user returns 403 with standardized envelope."""
         contact = Contact(
             id=uuid.uuid4(),
             name="Other",
@@ -120,9 +125,12 @@ class TestCreateMemory:
             )
 
         assert response.status_code == 403
-        assert "access" in response.json()["detail"].lower()
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "FORBIDDEN"
+        assert "access" in data.get("message", "").lower()
 
-    def test_create_memory_empty_content_returns_422(self, mock_user):
+    def test_create_memory_empty_content_returns_400(self, mock_user):
         """Empty content returns 422."""
         contact_id = uuid.uuid4()
         contact = Contact(
@@ -143,7 +151,10 @@ class TestCreateMemory:
                 json={"content": ""},
             )
 
-        assert response.status_code == 422
+        assert response.status_code == 400
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "VALIDATION_ERROR"
 
 
 class TestListMemories:
@@ -183,8 +194,8 @@ class TestListMemories:
         assert len(data["data"]["memories"]) == 1
         assert data["data"]["memories"][0]["content"] == "First note"
 
-    def test_list_memories_contact_not_found_returns_404(self, mock_user):
-        """List memories for non-existent contact returns 404."""
+    def test_list_memories_contact_not_found_returns_404_with_envelope(self, mock_user):
+        """List memories for non-existent contact returns 404 with standardized envelope."""
         mock_db = Mock()
         mock_db.get.return_value = None
 
@@ -193,9 +204,12 @@ class TestListMemories:
             response = client.get(f"/api/v1/contacts/{uuid.uuid4()}/memories")
 
         assert response.status_code == 404
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "NOT_FOUND"
 
-    def test_list_memories_forbidden_returns_403(self, mock_user):
-        """List memories for contact owned by another user returns 403."""
+    def test_list_memories_forbidden_returns_403_with_envelope(self, mock_user):
+        """List memories for contact owned by another user returns 403 with standardized envelope."""
         contact = Contact(
             id=uuid.uuid4(),
             name="Other",
@@ -212,6 +226,9 @@ class TestListMemories:
             response = client.get(f"/api/v1/contacts/{contact.id}/memories")
 
         assert response.status_code == 403
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "FORBIDDEN"
 
 
 class TestMemoriesRequireAuth:

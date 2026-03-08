@@ -244,10 +244,10 @@
 
 ## 9. Recommendations
 
-1. **Contact name:** Add `min_length=1` (or equivalent) for contact `name` so empty string is rejected.
-2. **Error envelope:** Convert 403/404 from contacts and memories to the same envelope format (`status`, `data`, `message` / `error_code`) used elsewhere (e.g. via exception handler or helper).
-3. **OPTIONS:** Ensure CORS preflight (OPTIONS with Origin) is consistently 200 for all API paths the frontend uses.
-4. **DELETE without auth:** If 307 appears again, confirm it’s intentional (e.g. redirect to login) or ensure 401 is returned.
+1. **Contact name:** Add `min_length=1` (or equivalent) for contact `name` so empty string is rejected. **Addressed:** `ContactCreate.name` now has `min_length=1`.
+2. **Error envelope:** Convert 403/404 from contacts and memories to the same envelope format (`status`, `data`, `message` / `error_code`) used elsewhere. **Addressed:** `HTTPException` is handled by a registered handler; 403/404 use `error_code` FORBIDDEN/NOT_FOUND.
+3. **OPTIONS (CORS):** CORS preflight (OPTIONS) returns 200 when the request includes an `Origin` header (e.g. `Origin: http://localhost:8080`). Browsers send `Origin` automatically; for non-browser clients, include `Origin` when testing preflight. No code change required.
+4. **DELETE without auth:** Unauthenticated DELETE should return 401. If 307 appears, it is likely environment-specific (proxy or trailing-slash redirect). Clients should use exact paths and expect 401 for missing/invalid token. **Addressed:** Test added to assert DELETE without auth returns 401.
 
 ---
 

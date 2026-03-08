@@ -6,6 +6,7 @@ and 404/403 behavior without a real database.
 """
 
 import uuid
+from contextlib import contextmanager
 from datetime import date, datetime
 from unittest.mock import Mock
 
@@ -36,6 +37,7 @@ def auth_headers(mock_user):
     return {}
 
 
+@contextmanager
 def _override_deps(client, mock_db, current_user):
     """Override get_session and get_current_user."""
     def get_session_override():
@@ -87,13 +89,29 @@ class TestCreateContact:
         assert data["data"]["relationship_type"] == "Friend"
         assert data["message"] == "Contact added successfully"
 
-    def test_create_contact_missing_name_returns_422(self, mock_user):
-        """Missing name returns 422."""
+    def test_create_contact_missing_name_returns_400(self, mock_user):
+        """Missing name returns 400 with validation envelope."""
         mock_db = Mock()
         client = TestClient(app)
         with _override_deps(client, mock_db, mock_user):
             response = client.post("/api/v1/contacts", json={})
-        assert response.status_code == 422
+        assert response.status_code == 400
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "VALIDATION_ERROR"
+
+    def test_create_contact_empty_name_returns_400(self, mock_user):
+        """Empty string name is rejected with 400 and validation envelope."""
+        mock_db = Mock()
+        client = TestClient(app)
+        with _override_deps(client, mock_db, mock_user):
+            response = client.post("/api/v1/contacts", json={"name": ""})
+        assert response.status_code == 400
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "VALIDATION_ERROR"
+        assert "details" in data and "field_errors" in data["details"]
+        assert "name" in data["details"]["field_errors"]
 
 
 class TestListContacts:
@@ -153,8 +171,8 @@ class TestGetContact:
         assert response.status_code == 200
         assert response.json()["data"]["name"] == "Carol"
 
-    def test_get_contact_not_found_returns_404(self, mock_user):
-        """Get non-existent contact returns 404."""
+    def test_get_contact_not_found_returns_404_with_envelope(self, mock_user):
+        """Get non-existent contact returns 404 with standardized envelope."""
         mock_db = Mock()
         mock_db.get.return_value = None
 
@@ -163,10 +181,13 @@ class TestGetContact:
             response = client.get(f"/api/v1/contacts/{uuid.uuid4()}")
 
         assert response.status_code == 404
-        assert "not found" in response.json()["detail"].lower()
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "NOT_FOUND"
+        assert "not found" in data.get("message", "").lower()
 
-    def test_get_contact_forbidden_returns_403(self, mock_user):
-        """Get contact owned by another user returns 403."""
+    def test_get_contact_forbidden_returns_403_with_envelope(self, mock_user):
+        """Get contact owned by another user returns 403 with standardized envelope."""
         other_user_id = uuid.uuid4()
         contact = Contact(
             id=uuid.uuid4(),
@@ -184,7 +205,10 @@ class TestGetContact:
             response = client.get(f"/api/v1/contacts/{contact.id}")
 
         assert response.status_code == 403
-        assert "access" in response.json()["detail"].lower()
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "FORBIDDEN"
+        assert "access" in data.get("message", "").lower()
 
 
 class TestDeleteContact:
@@ -214,8 +238,8 @@ class TestDeleteContact:
         mock_db.delete.assert_called_once()
         mock_db.commit.assert_called_once()
 
-    def test_delete_contact_not_found_returns_404(self, mock_user):
-        """Delete non-existent contact returns 404."""
+    def test_delete_contact_not_found_returns_404_with_envelope(self, mock_user):
+        """Delete non-existent contact returns 404 with standardized envelope."""
         mock_db = Mock()
         mock_db.get.return_value = None
 
@@ -224,9 +248,12 @@ class TestDeleteContact:
             response = client.delete(f"/api/v1/contacts/{uuid.uuid4()}")
 
         assert response.status_code == 404
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "NOT_FOUND"
 
-    def test_delete_contact_forbidden_returns_403(self, mock_user):
-        """Delete contact owned by another user returns 403."""
+    def test_delete_contact_forbidden_returns_403_with_envelope(self, mock_user):
+        """Delete contact owned by another user returns 403 with standardized envelope."""
         contact = Contact(
             id=uuid.uuid4(),
             name="Other",
@@ -243,6 +270,9 @@ class TestDeleteContact:
             response = client.delete(f"/api/v1/contacts/{contact.id}")
 
         assert response.status_code == 403
+        data = response.json()
+        assert data.get("status") == "error"
+        assert data.get("error_code") == "FORBIDDEN"
 
 
 class TestContactsRequireAuth:
@@ -256,4 +286,14 @@ class TestContactsRequireAuth:
         if get_current_user in app.dependency_overrides:
             del app.dependency_overrides[get_current_user]
         response = client.get("/api/v1/contacts")
+        assert response.status_code == 401
+
+    def test_delete_contact_without_auth_returns_401(self):
+        """DELETE /contacts/{id} without token returns 401 (not 307 redirect)."""
+        client = TestClient(app)
+        if get_session in app.dependency_overrides:
+            del app.dependency_overrides[get_session]
+        if get_current_user in app.dependency_overrides:
+            del app.dependency_overrides[get_current_user]
+        response = client.delete(f"/api/v1/contacts/{uuid.uuid4()}")
         assert response.status_code == 401

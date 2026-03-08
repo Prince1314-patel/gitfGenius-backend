@@ -172,7 +172,7 @@ docker exec -it giftgenius-postgres psql -U prince1314 -d giftgenius -c "SELECT 
 
 ### Test API Endpoints
 
-Visit http://localhost:8000/docs and use the interactive Swagger UI.
+Visit http://localhost:8000/docs and use the interactive Swagger UI. For CORS preflight (OPTIONS), send an `Origin` header (e.g. `Origin: http://localhost:8080`) to receive 200; browsers do this automatically.
 
 ## 📦 Dependencies
 

@@ -3,7 +3,7 @@ Main FastAPI application
 """
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 import logging
@@ -62,9 +62,10 @@ app = FastAPI(
 # Add error handling middleware
 app.add_middleware(ErrorHandlingMiddleware)
 
-# Add exception handlers for specific error types
+# Add exception handlers for specific error types (HTTPException before Exception)
 app.add_exception_handler(AuthenticationError, authentication_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Configure CORS

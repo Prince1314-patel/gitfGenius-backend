@@ -243,12 +243,20 @@ class ErrorResponseFormatter:
         if isinstance(http_exception.detail, dict):
             return http_exception.detail
         
-        # Otherwise, format it as a standard error
+        # Map status code to error_code for consistency with auth/validation errors
+        code = http_exception.status_code
+        if code == status.HTTP_404_NOT_FOUND:
+            error_code = "NOT_FOUND"
+        elif code == status.HTTP_403_FORBIDDEN:
+            error_code = "FORBIDDEN"
+        else:
+            error_code = "HTTP_ERROR"
+
         return {
             "status": "error",
             "data": None,
             "message": str(http_exception.detail),
-            "error_code": "HTTP_ERROR"
+            "error_code": error_code
         }
 
 

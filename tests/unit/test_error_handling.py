@@ -215,19 +215,32 @@ class TestErrorResponseFormatter:
         
         assert response == detail
     
-    def test_format_http_exception_with_string_detail(self):
-        """Test HTTP exception formatting when detail is a string."""
+    def test_format_http_exception_404_returns_not_found(self):
+        """Test HTTP 404 is formatted with error_code NOT_FOUND."""
         http_error = HTTPException(status_code=404, detail="Not found")
         response = ErrorResponseFormatter.format_http_exception(http_error)
         
-        expected = {
-            "status": "error",
-            "data": None,
-            "message": "Not found",
-            "error_code": "HTTP_ERROR"
-        }
+        assert response["status"] == "error"
+        assert response["data"] is None
+        assert response["message"] == "Not found"
+        assert response["error_code"] == "NOT_FOUND"
+
+    def test_format_http_exception_403_returns_forbidden(self):
+        """Test HTTP 403 is formatted with error_code FORBIDDEN."""
+        http_error = HTTPException(status_code=403, detail="Access denied")
+        response = ErrorResponseFormatter.format_http_exception(http_error)
         
-        assert response == expected
+        assert response["status"] == "error"
+        assert response["message"] == "Access denied"
+        assert response["error_code"] == "FORBIDDEN"
+
+    def test_format_http_exception_other_returns_http_error(self):
+        """Test other HTTP status codes use error_code HTTP_ERROR."""
+        http_error = HTTPException(status_code=400, detail="Bad request")
+        response = ErrorResponseFormatter.format_http_exception(http_error)
+        
+        assert response["error_code"] == "HTTP_ERROR"
+        assert response["message"] == "Bad request"
 
 
 class TestSecureLogger:

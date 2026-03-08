@@ -44,6 +44,11 @@ class TestContactCreate:
         with pytest.raises(ValidationError):
             ContactCreate()
 
+    def test_empty_name_raises(self):
+        """Empty string name raises ValidationError (min_length=1)."""
+        with pytest.raises(ValidationError):
+            ContactCreate(name="")
+
     def test_name_max_length(self):
         """Name up to 255 characters is valid."""
         ContactCreate(name="a" * 255)

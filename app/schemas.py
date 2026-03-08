@@ -88,7 +88,7 @@ class AuthenticationResponse(BaseModel):
 
 class ContactCreate(BaseModel):
     """Request schema for creating a contact."""
-    name: str = Field(..., max_length=255, description="Contact name")
+    name: str = Field(..., min_length=1, max_length=255, description="Contact name")
     relationship_type: Optional[str] = Field(default=None, max_length=100)
     birthday: Optional[date] = Field(default=None)
 
