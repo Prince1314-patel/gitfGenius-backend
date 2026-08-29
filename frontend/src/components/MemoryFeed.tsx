@@ -49,7 +49,7 @@ export function MemoryFeed({ memories, onAddMemory, onDeleteMemory }: MemoryFeed
 
       {/* Memory List */}
       <div className="space-y-3">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence>
           {memories.map((memory) => (
             <MemoryCard
               key={memory.id}
@@ -75,8 +75,6 @@ interface MemoryCardProps {
 }
 
 function MemoryCard({ memory, onDelete }: MemoryCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     <motion.div
       layout
@@ -85,27 +83,21 @@ function MemoryCard({ memory, onDelete }: MemoryCardProps) {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
       className="relative rounded-2xl bg-card p-4 shadow-card"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <p className={`text-foreground ${onDelete ? 'pr-8' : ''}`}>{memory.content}</p>
       <p className="mt-2 text-xs text-muted-foreground">
         {formatRelativeTime(memory.createdAt)}
       </p>
 
-      <AnimatePresence>
-        {onDelete && isHovered && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={onDelete}
-            className="absolute top-3 right-3 rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {onDelete && (
+        <button
+          aria-label="Delete note"
+          onClick={onDelete}
+          className="absolute top-3 right-3 rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
     </motion.div>
   );
 }

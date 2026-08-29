@@ -1,19 +1,20 @@
 import { useState, useCallback } from 'react';
 import { Contact, Memory } from '@/types/contact';
-import { get, post, del } from '@/lib/api';
+import { get, post, put, del } from '@/lib/api';
 import { API_PATHS } from '@/lib/constants';
 import { apiContactToContact, apiMemoryToMemory } from '@/lib/apiMappers';
-import type { ApiContact, ApiContactsListData, ApiMemory, ApiMemoriesListData } from '@/lib/apiMappers';
+import type { ApiContact, ApiContactsListData, ApiMemory, ApiMemoriesListData, ApiRecommendationsData } from '@/lib/apiMappers';
 
 export function useContacts() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [memoriesByContactId, setMemoriesByContactId] = useState<Record<string, Memory[]>>({});
+  const [recommendationsByContactId, setRecommendationsByContactId] = useState<Record<string, string[]>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchContacts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await get<ApiContactsListData>(API_PATHS.CONTACTS, true);
+      const data = await get<ApiContactsListData>(API_PATHS.CONTACTS);
       setContacts((data.contacts ?? []).map(apiContactToContact));
     } finally {
       setIsLoading(false);
@@ -31,7 +32,7 @@ export function useContacts() {
   );
 
   const fetchMemories = useCallback(async (contactId: string): Promise<Memory[]> => {
-    const data = await get<ApiMemoriesListData>(API_PATHS.MEMORIES_BY_CONTACT(contactId), true);
+    const data = await get<ApiMemoriesListData>(API_PATHS.MEMORIES_BY_CONTACT(contactId));
     const memories = (data.memories ?? []).map(apiMemoryToMemory);
     setMemoriesByContactId((prev) => ({ ...prev, [contactId]: memories }));
     return memories;
@@ -51,7 +52,7 @@ export function useContacts() {
             ? contact.birthday.toISOString().split('T')[0]
             : String(contact.birthday).slice(0, 10);
       }
-      const data = await post<ApiContact>(API_PATHS.CONTACTS, body, true);
+      const data = await post<ApiContact>(API_PATHS.CONTACTS, body);
       const newContact = apiContactToContact(data);
       setContacts((prev) => [...prev, newContact]);
       return newContact;
@@ -59,8 +60,16 @@ export function useContacts() {
     []
   );
 
-  /** No-op: backend has no contact update endpoint. */
-  const updateContact = useCallback((_id: string, _updates: Partial<Contact>) => {}, []);
+  const updateContact = useCallback(async (id: string, updates: Partial<Contact>) => {
+    const body: { name?: string; relationship_type?: string; birthday?: string } = {};
+    if (updates.name !== undefined) body.name = updates.name;
+    if (updates.relationship !== undefined) body.relationship_type = updates.relationship;
+    if (updates.birthday !== undefined) body.birthday = updates.birthday.toISOString().slice(0, 10);
+    const data = await put<ApiContact>(API_PATHS.CONTACT_BY_ID(id), body);
+    const updated = apiContactToContact(data);
+    setContacts((prev) => prev.map((contact) => (contact.id === id ? updated : contact)));
+    return updated;
+  }, []);
 
   const deleteContact = useCallback(async (id: string) => {
     await del(API_PATHS.CONTACT_BY_ID(id));
@@ -73,7 +82,7 @@ export function useContacts() {
   }, []);
 
   const addMemory = useCallback(async (contactId: string, content: string): Promise<Memory> => {
-    const data = await post<ApiMemory>(API_PATHS.MEMORIES_BY_CONTACT(contactId), { content }, true);
+    const data = await post<ApiMemory>(API_PATHS.MEMORIES_BY_CONTACT(contactId), { content });
     const memory = apiMemoryToMemory(data);
     setMemoriesByContactId((prev) => ({
       ...prev,
@@ -82,8 +91,19 @@ export function useContacts() {
     return memory;
   }, []);
 
-  /** No-op: backend has no memory delete endpoint. */
-  const deleteMemory = useCallback((_contactId: string, _memoryId: string) => {}, []);
+  const fetchRecommendations = useCallback(async (contactId: string): Promise<string[]> => {
+    const data = await get<ApiRecommendationsData>(API_PATHS.RECOMMENDATIONS_BY_CONTACT(contactId));
+    setRecommendationsByContactId((prev) => ({ ...prev, [contactId]: data.recommendations ?? [] }));
+    return data.recommendations ?? [];
+  }, []);
+
+  const deleteMemory = useCallback(async (contactId: string, memoryId: string) => {
+    await del(API_PATHS.MEMORY_BY_ID(contactId, memoryId));
+    setMemoriesByContactId((prev) => ({
+      ...prev,
+      [contactId]: (prev[contactId] ?? []).filter((memory) => memory.id !== memoryId),
+    }));
+  }, []);
 
   return {
     contacts,
@@ -96,5 +116,7 @@ export function useContacts() {
     deleteContact,
     addMemory,
     deleteMemory,
+    fetchRecommendations,
+    recommendationsByContactId,
   };
 }

@@ -47,6 +47,28 @@ export interface ApiMemoriesListData {
   memories: ApiMemory[];
 }
 
+/** Gift recommendation response data. */
+export interface ApiRecommendationsData {
+  recommendations: string[];
+}
+
+export interface ApiDbSnapshotData {
+  database_url: 'sqlite' | 'postgres';
+  counts: {
+    users: number;
+    contacts: number;
+    memories: number;
+  };
+  ai: {
+    provider: 'openrouter' | 'local_fallback';
+    model: string;
+    configured: boolean;
+  };
+  users: Array<Pick<ApiUser, 'id' | 'email' | 'created_at'>>;
+  contacts: ApiContact[];
+  memories: ApiMemory[];
+}
+
 /**
  * Maps API contact to UI Contact. Uses created_at for both createdAt and updatedAt (API has no updatedAt).
  */

@@ -1,20 +1,16 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Calendar, User, LogOut } from 'lucide-react';
+import { Home, Calendar, User, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
-import { Button } from './ui/button';
 
 const navItems = [
   { to: '/dashboard', icon: Home, label: 'Dashboard' },
   { to: '/calendar', icon: Calendar, label: 'Calendar' },
+  { to: '/database', icon: Database, label: 'Database' },
   { to: '/settings', icon: User, label: 'Settings' },
 ];
 
-interface SidebarNavProps {
-  onLogout: () => void;
-}
-
-export function SidebarNav({ onLogout }: SidebarNavProps) {
+export function SidebarNav() {
   const location = useLocation();
 
   return (
@@ -46,17 +42,6 @@ export function SidebarNav({ onLogout }: SidebarNavProps) {
           })}
         </ul>
       </nav>
-
-      <div className="p-4 border-t border-border">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-muted-foreground"
-          onClick={onLogout}
-        >
-          <LogOut className="h-5 w-5" />
-          Sign Out
-        </Button>
-      </div>
     </aside>
   );
 }

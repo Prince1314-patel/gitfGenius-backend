@@ -1,10 +1,11 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Calendar, User } from 'lucide-react';
+import { Home, Calendar, User, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/dashboard', icon: Home, label: 'Dashboard' },
   { to: '/calendar', icon: Calendar, label: 'Calendar' },
+  { to: '/database', icon: Database, label: 'Database' },
   { to: '/settings', icon: User, label: 'Settings' },
 ];
 

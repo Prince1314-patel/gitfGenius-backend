@@ -4,30 +4,18 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { useContacts } from "@/hooks/useContacts";
 import { AppLayout } from "@/components/AppLayout";
-import { AuthPage } from "@/pages/AuthPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ContactDetailPage } from "@/pages/ContactDetailPage";
 import { CalendarPage } from "@/pages/CalendarPage";
+import { DatabasePage } from "@/pages/DatabasePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function AppContent() {
-  const {
-    user,
-    isLoading: authLoading,
-    error: authError,
-    fieldErrors: authFieldErrors,
-    login,
-    signup,
-    logout,
-    isAuthenticated,
-  } = useAuth();
-
   const {
     contacts,
     isLoading: contactsLoading,
@@ -38,35 +26,17 @@ function AppContent() {
     deleteContact,
     addMemory,
     deleteMemory,
+    fetchRecommendations,
+    recommendationsByContactId,
     getContact,
   } = useContacts();
 
   useEffect(() => {
-    if (isAuthenticated) fetchContacts();
-  }, [isAuthenticated, fetchContacts]);
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <AuthPage
-        onLogin={login}
-        onSignup={signup}
-        isLoading={authLoading}
-        error={authError}
-        fieldErrors={authFieldErrors}
-      />
-    );
-  }
+    fetchContacts();
+  }, [fetchContacts]);
 
   return (
-    <AppLayout onLogout={logout}>
+    <AppLayout>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route
@@ -75,7 +45,7 @@ function AppContent() {
             <DashboardPage
               contacts={contacts}
               isLoading={contactsLoading}
-              userName={user?.name || 'there'}
+              userName="there"
               onAddContact={addContact}
             />
           }
@@ -87,19 +57,23 @@ function AppContent() {
               getContact={getContact}
               fetchMemories={fetchMemories}
               onDeleteContact={deleteContact}
+              onUpdateContact={updateContact}
               onAddMemory={addMemory}
+              onDeleteMemory={deleteMemory}
+              onFetchRecommendations={fetchRecommendations}
+              recommendations={id => recommendationsByContactId[id] ?? []}
               contactsLoading={contactsLoading}
             />
           }
         />
-        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/calendar" element={<CalendarPage contacts={contacts} />} />
+        <Route path="/database" element={<DatabasePage />} />
         <Route
           path="/settings"
           element={
             <SettingsPage
-              userName={user?.name || 'User'}
-              userEmail={user?.email || ''}
-              onLogout={logout}
+              userName="User"
+              userEmail=""
             />
           }
         />

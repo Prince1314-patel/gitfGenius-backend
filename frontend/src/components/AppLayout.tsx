@@ -4,13 +4,12 @@ import { SidebarNav } from './SidebarNav';
 
 interface AppLayoutProps {
   children: ReactNode;
-  onLogout: () => void;
 }
 
-export function AppLayout({ children, onLogout }: AppLayoutProps) {
+export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
-      <SidebarNav onLogout={onLogout} />
+      <SidebarNav />
       
       <main className="pb-20 md:pb-0 md:pl-64">
         {children}

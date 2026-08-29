@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,8 @@ import { Contact, RELATIONSHIP_OPTIONS } from '@/types/contact';
 interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Create-only: saves via API. Can reject with { message, details?: { field_errors } }. */
   onSave: (contact: Omit<Contact, 'id' | 'memories' | 'createdAt' | 'updatedAt'>) => void | Promise<void>;
+  contact?: Contact;
 }
 
 function fieldError(fieldErrors: Record<string, string[]> | null | undefined, field: string): string | null {
@@ -25,12 +25,23 @@ function fieldError(fieldErrors: Record<string, string[]> | null | undefined, fi
   return list?.length ? list[0] ?? null : null;
 }
 
-export function ContactModal({ isOpen, onClose, onSave }: ContactModalProps) {
+function dateInputValue(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+export function ContactModal({ isOpen, onClose, onSave, contact }: ContactModalProps) {
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [birthday, setBirthday] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]> | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setName(contact?.name ?? '');
+    setRelationship(contact?.relationship ?? '');
+    setBirthday(contact?.birthday ? dateInputValue(contact.birthday) : '');
+  }, [contact, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +95,7 @@ export function ContactModal({ isOpen, onClose, onSave }: ContactModalProps) {
           >
             <div className="w-full max-w-lg rounded-t-3xl md:rounded-2xl bg-card p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-foreground">Add New Contact</h2>
+                <h2 className="text-xl font-bold text-foreground">{contact ? 'Edit Contact' : 'Add New Contact'}</h2>
                 <button
                   onClick={handleClose}
                   className="rounded-full p-2 hover:bg-muted transition-colors"
@@ -141,7 +152,7 @@ export function ContactModal({ isOpen, onClose, onSave }: ContactModalProps) {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading || !name.trim()}>
-                  {isLoading ? 'Saving...' : 'Save Contact'}
+                  {isLoading ? 'Saving...' : contact ? 'Update Contact' : 'Save Contact'}
                 </Button>
               </form>
             </div>

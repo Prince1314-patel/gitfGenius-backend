@@ -1,14 +1,12 @@
-import { User, Bell, Palette, LogOut } from 'lucide-react';
+import { User, Bell, Palette } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 
 interface SettingsPageProps {
   userName: string;
   userEmail: string;
-  onLogout: () => void;
 }
 
-export function SettingsPage({ userName, userEmail, onLogout }: SettingsPageProps) {
+export function SettingsPage({ userName, userEmail }: SettingsPageProps) {
   const settingsItems = [
     { icon: User, label: 'Profile', description: 'Update your personal information' },
     { icon: Bell, label: 'Notifications', description: 'Manage your reminder preferences' },
@@ -61,23 +59,6 @@ export function SettingsPage({ userName, userEmail, onLogout }: SettingsPageProp
             </motion.button>
           ))}
         </div>
-
-        {/* Logout */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="pt-4"
-        >
-          <Button
-            variant="outline"
-            className="w-full border-destructive text-destructive hover:bg-destructive/10"
-            onClick={onLogout}
-          >
-            <LogOut className="h-5 w-5 mr-2" />
-            Sign Out
-          </Button>
-        </motion.div>
       </div>
     </div>
   );

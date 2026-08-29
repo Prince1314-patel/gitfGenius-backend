@@ -158,6 +158,57 @@ describe('useContacts', () => {
     expect(result.current.contacts[0].id).toBe('c-new');
   });
 
+  it('updateContact sends API payload and updates state', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            status: 'success',
+            data: {
+              contacts: [
+                {
+                  id: 'c-edit',
+                  name: 'Old',
+                  relationship_type: 'Friend',
+                  birthday: '2000-01-01',
+                  created_at: '2026-01-01T00:00:00',
+                },
+              ],
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            status: 'success',
+            data: {
+              id: 'c-edit',
+              name: 'New',
+              relationship_type: 'Family',
+              birthday: '2000-01-01',
+              created_at: '2026-01-01T00:00:00',
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      );
+
+    const { result } = renderHook(() => useContacts());
+
+    await act(async () => {
+      await result.current.fetchContacts();
+      await result.current.updateContact('c-edit', { name: 'New', relationship: 'Family' });
+    });
+
+    expect(result.current.contacts[0]).toMatchObject({ id: 'c-edit', name: 'New', relationship: 'Family' });
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining('/contacts/c-edit'),
+      expect.objectContaining({ method: 'PUT' })
+    );
+  });
+
   it('deleteContact removes contact and calls API', async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(
@@ -248,5 +299,78 @@ describe('useContacts', () => {
     expect(contact?.memories).toHaveLength(1);
     expect(contact?.memories[0].content).toBe('New note');
     expect(contact?.memories[0].id).toBe('mem-new');
+  });
+
+  it('deleteMemory removes a cached memory', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            status: 'success',
+            data: {
+              contacts: [
+                {
+                  id: 'c2',
+                  name: 'Charlie',
+                  relationship_type: null,
+                  birthday: null,
+                  created_at: '2026-01-01T00:00:00',
+                },
+              ],
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            status: 'success',
+            data: {
+              memories: [
+                { id: 'm-delete', content: 'Remove me', created_at: '2026-01-02T00:00:00' },
+              ],
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ status: 'success', data: null }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
+
+    const { result } = renderHook(() => useContacts());
+
+    await act(async () => {
+      await result.current.fetchContacts();
+      await result.current.fetchMemories('c2');
+      await result.current.deleteMemory('c2', 'm-delete');
+    });
+
+    expect(result.current.getContact('c2')?.memories).toEqual([]);
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining('/contacts/c2/memories/m-delete'),
+      expect.objectContaining({ method: 'DELETE' })
+    );
+  });
+
+  it('fetchRecommendations stores gift ideas', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ status: 'success', data: { recommendations: ['Coffee beans'] } }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+
+    const { result } = renderHook(() => useContacts());
+
+    await act(async () => {
+      await result.current.fetchRecommendations('c1');
+    });
+
+    expect(result.current.recommendationsByContactId.c1).toEqual(['Coffee beans']);
   });
 });
