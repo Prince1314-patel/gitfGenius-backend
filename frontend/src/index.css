@@ -1,0 +1,214 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Warm, inviting color palette for GiftGenius */
+    --background: 30 33% 97%; /* Warm off-white #F9F7F5 */
+    --foreground: 218 32% 18%; /* Dark warm gray #2D3748 */
+
+    --card: 0 0% 100%; /* Pure white for cards */
+    --card-foreground: 218 32% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 32% 18%;
+
+    /* Coral primary - vibrant and warm */
+    --primary: 0 100% 71%; /* #FF6B6B */
+    --primary-foreground: 0 0% 100%;
+
+    /* Teal secondary - sophisticated accent */
+    --secondary: 174 100% 29%; /* #009688 */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 30 20% 93%;
+    --muted-foreground: 215 14% 51%; /* #718096 */
+
+    --accent: 174 100% 29%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 174 100% 29%;
+
+    --radius: 1rem;
+
+    /* Custom semantic tokens */
+    --coral-50: 0 100% 97%;
+    --coral-100: 0 100% 94%;
+    --coral-500: 0 100% 71%;
+    --coral-600: 0 85% 62%;
+    --coral-700: 0 75% 55%;
+
+    --teal-50: 174 50% 95%;
+    --teal-100: 174 50% 90%;
+    --teal-500: 174 100% 29%;
+    --teal-600: 174 100% 25%;
+    --teal-700: 174 100% 20%;
+
+    --warm-gray-50: 30 33% 97%;
+    --warm-gray-100: 30 20% 93%;
+    --warm-gray-200: 30 20% 88%;
+    --warm-gray-500: 215 14% 51%;
+    --warm-gray-800: 218 32% 18%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 218 32% 18%;
+    --sidebar-primary: 0 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 20% 93%;
+    --sidebar-accent-foreground: 218 32% 18%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 174 100% 29%;
+  }
+
+  .dark {
+    --background: 218 32% 12%;
+    --foreground: 30 33% 97%;
+
+    --card: 218 32% 16%;
+    --card-foreground: 30 33% 97%;
+
+    --popover: 218 32% 16%;
+    --popover-foreground: 30 33% 97%;
+
+    --primary: 0 100% 71%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 100% 35%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 218 32% 22%;
+    --muted-foreground: 215 14% 65%;
+
+    --accent: 174 100% 35%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 218 32% 22%;
+    --input: 218 32% 22%;
+    --ring: 174 100% 35%;
+
+    --sidebar-background: 218 32% 14%;
+    --sidebar-foreground: 30 33% 97%;
+    --sidebar-primary: 0 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 218 32% 20%;
+    --sidebar-accent-foreground: 30 33% 97%;
+    --sidebar-border: 218 32% 22%;
+    --sidebar-ring: 174 100% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  /* Skeleton shimmer animation */
+  .skeleton-shimmer {
+    @apply relative overflow-hidden bg-muted;
+  }
+
+  .skeleton-shimmer::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--card) / 0.5),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Custom focus ring for inputs */
+  .input-focus-ring {
+    @apply focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none transition-all duration-200;
+  }
+
+  /* Avatar initials background */
+  .avatar-initials {
+    @apply bg-teal-100 text-teal-600 font-semibold;
+  }
+
+  /* Badge variants */
+  .badge-urgent {
+    @apply bg-coral-500 text-white font-medium;
+  }
+
+  .badge-normal {
+    @apply text-teal-600 font-medium;
+  }
+}
+
+@layer utilities {
+  /* Custom background colors using CSS variables */
+  .bg-coral-50 { background-color: hsl(var(--coral-50)); }
+  .bg-coral-100 { background-color: hsl(var(--coral-100)); }
+  .bg-coral-500 { background-color: hsl(var(--coral-500)); }
+  .bg-coral-600 { background-color: hsl(var(--coral-600)); }
+  .bg-coral-700 { background-color: hsl(var(--coral-700)); }
+
+  .bg-teal-50 { background-color: hsl(var(--teal-50)); }
+  .bg-teal-100 { background-color: hsl(var(--teal-100)); }
+  .bg-teal-500 { background-color: hsl(var(--teal-500)); }
+  .bg-teal-600 { background-color: hsl(var(--teal-600)); }
+  .bg-teal-700 { background-color: hsl(var(--teal-700)); }
+
+  .bg-warm-gray-50 { background-color: hsl(var(--warm-gray-50)); }
+  .bg-warm-gray-100 { background-color: hsl(var(--warm-gray-100)); }
+
+  /* Custom text colors */
+  .text-coral-500 { color: hsl(var(--coral-500)); }
+  .text-coral-600 { color: hsl(var(--coral-600)); }
+  .text-coral-700 { color: hsl(var(--coral-700)); }
+
+  .text-teal-500 { color: hsl(var(--teal-500)); }
+  .text-teal-600 { color: hsl(var(--teal-600)); }
+  .text-teal-700 { color: hsl(var(--teal-700)); }
+
+  .text-warm-gray-500 { color: hsl(var(--warm-gray-500)); }
+  .text-warm-gray-800 { color: hsl(var(--warm-gray-800)); }
+
+  /* Border colors */
+  .border-coral-500 { border-color: hsl(var(--coral-500)); }
+  .border-teal-500 { border-color: hsl(var(--teal-500)); }
+  .border-warm-gray-200 { border-color: hsl(var(--warm-gray-200)); }
+
+  /* Hover states */
+  .hover\:bg-coral-600:hover { background-color: hsl(var(--coral-600)); }
+  .hover\:bg-coral-700:hover { background-color: hsl(var(--coral-700)); }
+  .hover\:bg-teal-600:hover { background-color: hsl(var(--teal-600)); }
+  .hover\:bg-teal-700:hover { background-color: hsl(var(--teal-700)); }
+
+  /* Ring colors */
+  .ring-teal-500\/20 { --tw-ring-color: hsl(var(--teal-500) / 0.2); }
+}

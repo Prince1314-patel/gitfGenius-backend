@@ -1,0 +1,24 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+
+# Database
+alembic
+sqlmodel
+psycopg2-binary
+
+# Supabase Client
+supabase
+python-dotenv
+
+# Authentication
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Configuration
+pydantic
+pydantic-settings
+
+# Utilities
+email-validator
